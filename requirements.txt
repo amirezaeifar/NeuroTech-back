@@ -1,0 +1,13 @@
+# Build tooling
+setuptools>=68
+
+# Runtime
+Flask>=3.1
+python-dotenv>=1.0
+
+# Testing and code quality
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.8
+
+# Keep this file synchronized with pyproject.toml when dependencies change.
