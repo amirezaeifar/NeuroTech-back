@@ -11,6 +11,12 @@ class SmsSender(Protocol):
     def send(self, recipient: str, message: str) -> str: ...
 
 
+class EmailSender(Protocol):
+    """Send an email and return the provider message identifier."""
+
+    def send(self, recipient: str, subject: str, body: str) -> str: ...
+
+
 class PaymentGateway(Protocol):
     """Create a payment request and return the redirect URL."""
 

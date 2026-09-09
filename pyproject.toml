@@ -9,8 +9,20 @@ description = "Flask backend for the NeuroTech platform."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.14",
+    "argon2-cffi>=23.1",
+    "email-validator>=2.2",
     "Flask>=3.1",
+    "Flask-Cors>=5.0",
+    "Flask-JWT-Extended>=4.7",
+    "Flask-Limiter[redis]>=3.9",
+    "flask-smorest>=0.46",
+    "marshmallow>=3.23",
+    "phonenumbers>=8.13",
+    "PyMySQL>=1.1",
     "python-dotenv>=1.0",
+    "redis>=5.2",
+    "SQLAlchemy>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +37,16 @@ include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --basetemp=.pytest-tmp"
+addopts = "-ra --basetemp=.pytest-tmp --cov=app --cov-branch --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = true
 
 [tool.ruff]
 line-length = 100

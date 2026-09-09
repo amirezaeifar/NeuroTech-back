@@ -3,11 +3,13 @@
 Backend API for the NeuroTech platform, built with Python and Flask using a
 Semi-Clean modular monolith architecture.
 
-The **application foundation (roadmap steps 1-5)** is complete. The project now
-includes an application factory, environment-specific configuration, dependency
-bootstrap, versioned HTTP routes, RFC 9457 errors, request identifiers, a health
-endpoint, and automated unit/API tests. MariaDB and authentication are added in
-later roadmap sections.
+The current MVP includes MariaDB migrations, Redis-backed OTP and rate limiting,
+JWT cookie authentication, role checks, the Academy catalogue, enrollments,
+lesson progress, moderated comments, orders, and an idempotent development
+payment gateway. HTTP errors use RFC 9457 Problem Details.
+
+See [the development guide](docs/development.md) for the WSL2 service setup,
+migrations, seed data, health checks, backup, and restore workflow.
 
 ## Architecture
 
@@ -66,9 +68,7 @@ NeuroTech-back/
 
 - Python 3.11 or newer
 - A virtual environment tool available with Python
-
-MariaDB is not required for the application-foundation steps. It will be
-introduced with SQLAlchemy and Alembic in the next roadmap section.
+- WSL2 with `systemd`, MariaDB, and Redis for normal development/integration tests
 
 ## Quick start
 
@@ -151,10 +151,14 @@ Copy `.env.example` to `.env`. Never commit `.env` or real credentials.
 | `SERVICE_NAME` | Service identifier in health responses | `neurotech-api` |
 | `SERVICE_VERSION` | API service version | `0.1.0` |
 | `PROBLEM_BASE_URI` | Base URI for RFC 9457 problem types | Local API URI |
+| `DATABASE_URL` | Limited MariaDB development connection | `neurotech_dev` database |
+| `TEST_DATABASE_URL` | Isolated integration-test connection | `neurotech_test` database |
+| `REDIS_URL` | Redis connection pool target | WSL2 localhost |
+| `REDIS_NAMESPACE` | Environment key prefix | `neurotech:dev` |
+| `JWT_SECRET_KEY` | JWT signing key | Local placeholder only |
 
-JWT and database variables will be added when those capabilities are
-implemented. Production secrets must be supplied through the deployment
-environment rather than committed files.
+Production secrets must be supplied through the deployment environment rather
+than committed files.
 
 ## Tests and code quality
 
@@ -165,9 +169,10 @@ needed by the current implementation. Keep it synchronized with
 After installing dependencies:
 
 ```powershell
-pytest
+pytest --cov-report=json:.coverage-report.json
 ruff check .
 ruff format --check .
+python scripts/check_layer_coverage.py
 ```
 
 Pytest uses the project-local `.pytest-tmp` directory instead of the Windows
@@ -191,10 +196,11 @@ Test categories:
 - `tests/integration`: MariaDB and adapter integration tests
 - `tests/api`: HTTP contract tests through the Flask test client
 
-The current suite covers configuration validation, factory overrides, bootstrap
-wiring, fake-adapter isolation, health responses, request IDs, and RFC 9457
-responses for expected and unexpected errors. MariaDB integration tests remain
-empty until the database foundation is introduced.
+The suite covers domain rules, service branches, API contracts, OTP and rate
+limits, authentication sessions, Academy, progress, moderation, orders, payment
+idempotency, health responses, migrations, and RFC 9457 errors. In CI the same
+suite runs against a real MariaDB and Redis service. Overall coverage must remain
+at least 85%; branch coverage in `domain/services` must remain at least 95%.
 
 ## Confirmed decisions
 
@@ -224,19 +230,13 @@ file metadata and relative paths, not binary file contents.
 Fonts that ship with the frontend remain in the frontend repository unless
 administrators need to manage them dynamically.
 
-## Planned next step
+## MVP status
 
-The next roadmap section introduces the MariaDB data foundation:
-
-1. Local MariaDB development configuration
-2. SQLAlchemy engine and session factory
-3. Unit of Work transaction boundary
-4. Alembic migrations
-5. Repository interfaces and SQLAlchemy implementations
-6. MariaDB-backed integration tests
-
-JWT authentication remains outside that section and is added after the database
-foundation is stable.
+Roadmap phases 0–5 are implemented: the data foundation, JWT/OTP authentication,
+Academy catalogue, enrollment/progress/moderation, and the fake checkout flow.
+See the development guide for WSL2 provisioning and local verification. Later
+product, event, CMS, and production deployment phases intentionally remain out
+of the MVP.
 
 ## Contributing
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from urllib.parse import quote
-from uuid import uuid4
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +29,7 @@ class FakePaymentGateway:
         currency: str,
         callback_url: str,
     ) -> str:
-        payment_id = f"fake-payment-{uuid4()}"
+        payment_id = reference
         self.created_payments.append(
             CreatedPayment(
                 payment_id=payment_id,
@@ -40,4 +39,4 @@ class FakePaymentGateway:
                 callback_url=callback_url,
             )
         )
-        return f"https://payments.invalid/{quote(payment_id)}"
+        return f"{callback_url.rstrip('/')}/{quote(payment_id)}"

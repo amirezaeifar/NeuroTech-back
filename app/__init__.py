@@ -9,6 +9,7 @@ from typing import Any
 from flask import Flask
 
 from app.bootstrap import bootstrap
+from app.cli import register_cli
 from app.core.config import Settings
 from app.routes import register_http_layer
 
@@ -29,6 +30,7 @@ def create_app(
 
     app.extensions["container"] = bootstrap(settings)
     register_http_layer(app)
+    register_cli(app)
     return app
 
 

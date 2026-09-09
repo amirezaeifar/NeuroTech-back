@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import StaleDataError
+
 from app.routes.errors import ApiProblem
 
 
@@ -56,3 +59,23 @@ def test_unexpected_error_does_not_leak_internal_details(app) -> None:  # type: 
 
     assert payload["detail"] == "An unexpected error occurred."
     assert "sensitive-internal-detail" not in response.get_data(as_text=True)
+
+
+def test_database_conflicts_use_stable_problem_codes(app) -> None:  # type: ignore[no-untyped-def]
+    @app.get("/api/v1/_test/stale")
+    def stale():  # type: ignore[no-untyped-def]
+        raise StaleDataError("internal statement details")
+
+    @app.get("/api/v1/_test/integrity")
+    def integrity():  # type: ignore[no-untyped-def]
+        raise IntegrityError("statement", {}, RuntimeError("internal constraint details"))
+
+    client = app.test_client()
+    stale_payload = _assert_problem(
+        client.get("/api/v1/_test/stale"), status=409, code="VERSION_CONFLICT"
+    )
+    integrity_payload = _assert_problem(
+        client.get("/api/v1/_test/integrity"), status=409, code="DATA_CONFLICT"
+    )
+    assert "internal" not in stale_payload["detail"]
+    assert "internal" not in integrity_payload["detail"]
