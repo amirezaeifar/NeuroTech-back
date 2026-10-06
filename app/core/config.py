@@ -25,6 +25,8 @@ class Settings:
     jwt_secret_key: str
     log_level: str
     upload_root: Path
+    geoip_database_path: str
+    trusted_proxy_ips: str
     database_url: str
     test_database_url: str
     redis_url: str
@@ -39,6 +41,14 @@ class Settings:
     sms_provider: str
     email_provider: str
     payment_provider: str
+    smtp_host: str
+    smtp_port: int
+    smtp_username: str
+    smtp_password: str
+    email_from: str
+    kavenegar_api_key: str
+    kavenegar_sender: str
+    kavenegar_login_template: str
     service_name: str
     service_version: str
     problem_base_uri: str
@@ -130,6 +140,8 @@ class Settings:
             jwt_secret_key=jwt_secret_key,
             log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
             upload_root=Path(os.getenv("UPLOAD_ROOT", "storage/uploads")),
+            geoip_database_path=os.getenv("GEOIP_DATABASE_PATH", ""),
+            trusted_proxy_ips=os.getenv("TRUSTED_PROXY_IPS", ""),
             database_url=active_database_url,
             test_database_url=test_database_url,
             redis_url=os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0"),
@@ -150,6 +162,14 @@ class Settings:
             sms_provider=os.getenv("SMS_PROVIDER", "fake").lower(),
             email_provider=os.getenv("EMAIL_PROVIDER", "fake").lower(),
             payment_provider=os.getenv("PAYMENT_PROVIDER", "fake").lower(),
+            smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
+            smtp_port=_positive_int("SMTP_PORT", 587),
+            smtp_username=os.getenv("SMTP_USERNAME", ""),
+            smtp_password=os.getenv("SMTP_PASSWORD", ""),
+            email_from=os.getenv("EMAIL_FROM", "neuro.tech.pishro@gmail.com"),
+            kavenegar_api_key=os.getenv("KAVENEGAR_API_KEY", ""),
+            kavenegar_sender=os.getenv("KAVENEGAR_SENDER", "20006535"),
+            kavenegar_login_template=os.getenv("KAVENEGAR_LOGIN_TEMPLATE", "surgitrack-login"),
             service_name=os.getenv("SERVICE_NAME", "neurotech-api"),
             service_version=os.getenv("SERVICE_VERSION", "0.1.0"),
             problem_base_uri=problem_base_uri,
@@ -164,6 +184,8 @@ class Settings:
             "JWT_SECRET_KEY": self.jwt_secret_key,
             "LOG_LEVEL": self.log_level,
             "UPLOAD_ROOT": str(self.upload_root),
+            "GEOIP_DATABASE_PATH": self.geoip_database_path,
+            "TRUSTED_PROXY_IPS": self.trusted_proxy_ips,
             "DATABASE_URL": self.database_url,
             "TEST_DATABASE_URL": self.test_database_url,
             "REDIS_URL": self.redis_url,

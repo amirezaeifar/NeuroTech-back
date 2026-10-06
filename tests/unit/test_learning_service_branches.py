@@ -108,7 +108,8 @@ def test_pathway_locked_completed_and_missing_course_branches(app) -> None:  # t
         service.pathway(uuid4(), "en")
     service.enroll_free(user_id, "clinical-neurology")
     initial = service.pathway(user_id, "invalid")
-    assert initial["courses"][0]["modules"][0]["status"] == "in-progress"
+    assert initial["courses"][0]["modules"] == []
+    assert initial["currentNodeId"] == initial["courses"][0]["id"]
 
     with container.database.session() as session:
         course = session.scalar(select(Course).where(Course.slug == "clinical-neurology"))
@@ -136,4 +137,6 @@ def test_pathway_locked_completed_and_missing_course_branches(app) -> None:  # t
             )
         )
         session.commit()
-    assert len(service.pathway(user_id, "en")["courses"]) == 1
+    pathway = service.pathway(user_id, "en")
+    assert len(pathway["courses"]) == 6
+    assert sum(course["enrolled"] for course in pathway["courses"]) == 1

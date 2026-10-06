@@ -29,6 +29,18 @@ class Course(UuidPrimaryKeyMixin, TimestampMixin, Base):
     field: Mapped[str] = mapped_column(String(60), nullable=False)
     level: Mapped[str] = mapped_column(String(30), nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    owner_user_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True, native_uuid=False),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    instructor_partner_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True, native_uuid=False),
+        ForeignKey("partner_profiles.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    youtube_playlist_id: Mapped[str | None] = mapped_column(String(100))
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     translations: Mapped[list[CourseTranslation]] = relationship(
@@ -53,6 +65,7 @@ class Course(UuidPrimaryKeyMixin, TimestampMixin, Base):
     resources: Mapped[list[CourseResource]] = relationship(
         back_populates="course", cascade="all, delete-orphan"
     )
+    instructor_partner = relationship("PartnerProfile")
 
 
 class CourseTranslation(UuidPrimaryKeyMixin, Base):
@@ -64,6 +77,7 @@ class CourseTranslation(UuidPrimaryKeyMixin, Base):
     )
     locale: Mapped[str] = mapped_column(String(5), nullable=False)
     title: Mapped[str] = mapped_column(String(240), nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
     description: Mapped[str] = mapped_column(Text, nullable=False)
     instructor_name: Mapped[str] = mapped_column(String(160), nullable=False)
     duration_label: Mapped[str] = mapped_column(String(80), nullable=False)

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from sqlalchemy import delete
+
+from app.core.learning_models import Enrollment
 from app.services.auth import auth_service_from_container
 from app.services.seed import seed_academy
 
@@ -21,9 +24,25 @@ def _admin(client, app) -> dict[str, str]:  # type: ignore[no-untyped-def]
 
 def test_admin_invitation_profile_and_logout_all(client, app) -> None:  # type: ignore[no-untyped-def]
     headers = _admin(client, app)
+    service = auth_service_from_container(app.extensions["container"])
+    service.register_password(
+        display_name="Existing Member",
+        email="member-to-promote@example.com",
+        password="secure-pass-123",
+    )
+
+    promoted = client.post(
+        "/api/v1/admin/invitations",
+        json={"email": "member-to-promote@example.com", "role": "specialist"},
+        headers=headers,
+    )
+    assert promoted.status_code == 200
+    assert promoted.get_json()["data"]["outcome"] == "access_updated"
+    assert promoted.get_json()["data"]["user"]["role"] == "specialist"
+
     users = client.get("/api/v1/admin/users").get_json()["data"]
-    assert users[0]["email"] == "admin@example.com"
-    assert users[0]["role"] == "admin"
+    admin = next(user for user in users if user["email"] == "admin@example.com")
+    assert admin["role"] == "super_admin"
     updated = client.patch("/api/v1/me", json={"display_name": "Updated Admin"}, headers=headers)
     assert updated.get_json()["data"]["user"]["display_name"] == "Updated Admin"
 
@@ -33,6 +52,7 @@ def test_admin_invitation_profile_and_logout_all(client, app) -> None:  # type: 
         headers=headers,
     )
     assert invited.status_code == 202
+    assert invited.get_json()["data"]["outcome"] == "invitation_sent"
     assert (
         app.extensions["container"]
         .email_sender.sent_messages[-1]
@@ -76,6 +96,7 @@ def test_admin_course_crud_and_comment_moderation(client, app) -> None:  # type:
         "tier": "premium",
         "field": "clinicalNeurology",
         "level": "advanced",
+        "youtube_playlist_id": "PL0123456789ABCDEF",
         "translations": [
             {
                 "locale": "en",
@@ -99,6 +120,7 @@ def test_admin_course_crud_and_comment_moderation(client, app) -> None:  # type:
     }
     created = client.post("/api/v1/admin/courses", json=payload, headers=headers)
     assert created.status_code == 201
+    assert created.get_json()["data"]["youtube_playlist_id"] == "PL0123456789ABCDEF"
     course_id = created.get_json()["data"]["id"]
     assert (
         client.patch(
@@ -172,6 +194,10 @@ def test_admin_course_crud_and_comment_moderation(client, app) -> None:  # type:
         client.post(f"/api/v1/admin/courses/{course_id}/publish", headers=headers).status_code
         == 200
     )
+    public_course = client.get("/api/v1/courses/clinical-cases?locale=fa").get_json()["data"]
+    assert public_course["resources"] == [
+        {"name": "Cases PDF", "kind": "pdf", "url": None, "locked": True}
+    ]
     assert (
         client.post(f"/api/v1/admin/courses/{course_id}/unpublish", headers=headers).status_code
         == 200
@@ -187,14 +213,23 @@ def test_admin_course_crud_and_comment_moderation(client, app) -> None:  # type:
         == 200
     )
 
-    client.post("/api/v1/courses/clinical-neurology/enroll", headers=headers)
+    assert client.post(
+        "/api/v1/courses/clinical-neurology/enroll", headers=headers
+    ).status_code == 201
     comment = client.post(
         "/api/v1/courses/clinical-neurology/comments",
         json={"body": "Please approve this discussion note."},
         headers=headers,
-    ).get_json()["data"]
+    )
+    assert comment.status_code == 201
+    comment = comment.get_json()["data"]
     pending = client.get("/api/v1/admin/comments/pending").get_json()["data"]
     assert pending[0]["id"] == comment["id"]
+    inbox = client.get("/api/v1/admin/comments?status=attention").get_json()
+    assert inbox["meta"]["total"] == 1
+    assert inbox["data"][0]["course_title"]
+    summary = client.get("/api/v1/admin/comments/summary").get_json()["data"]
+    assert next(item for item in summary if item["course_slug"] == "clinical-neurology")["new"] == 1
     moderated = client.post(
         f"/api/v1/admin/comments/{comment['id']}/moderate",
         json={"decision": "approved", "reason": "Useful"},
@@ -202,13 +237,94 @@ def test_admin_course_crud_and_comment_moderation(client, app) -> None:  # type:
     )
     assert moderated.status_code == 200
     assert len(client.get("/api/v1/courses/clinical-neurology/comments").get_json()["data"]) == 1
+    reply = client.post(
+        f"/api/v1/admin/comments/{comment['id']}/reply",
+        json={"body": "Instructor response."},
+        headers=headers,
+    )
+    assert reply.status_code == 201
+    assert len(client.get("/api/v1/courses/clinical-neurology/comments").get_json()["data"]) == 2
     assert client.delete(f"/api/v1/admin/courses/{course_id}", headers=headers).status_code == 204
+
+
+def test_replacing_lessons_preserves_linked_comments(client, app) -> None:  # type: ignore[no-untyped-def]
+    seed_academy(app.extensions["container"])
+    headers = _admin(client, app)
+    course = next(
+        item
+        for item in client.get("/api/v1/admin/courses").get_json()["data"]
+        if item["slug"] == "clinical-neurology"
+    )
+    lesson_id = course["content"]["sections"][0]["lessons"][0]["id"]
+    assert client.post(
+        "/api/v1/courses/clinical-neurology/enroll", headers=headers
+    ).status_code == 201
+    comment = client.post(
+        "/api/v1/courses/clinical-neurology/comments",
+        json={"body": "Keep this comment after editing lessons.", "lesson_id": lesson_id},
+        headers=headers,
+    )
+    assert comment.status_code == 201
+    # Content replacement is intentionally forbidden while a course has active
+    # learners. Remove this test-only enrollment while retaining the comment so
+    # the SET NULL behavior can still be verified independently.
+    with app.extensions["container"].database.session() as session:
+        session.execute(delete(Enrollment))
+        session.commit()
+    assert client.post(
+        f"/api/v1/admin/courses/{course['id']}/unpublish", headers=headers
+    ).status_code == 200
+
+    source = course["content"]
+    content = {
+        "sections": [
+            {
+                "position": section["position"],
+                "translations": section["translations"],
+                "lessons": [
+                    {
+                        key: lesson[key]
+                        for key in (
+                            "position",
+                            "duration_seconds",
+                            "video_provider",
+                            "video_reference",
+                            "free_preview",
+                            "translations",
+                        )
+                    }
+                    for lesson in section["lessons"]
+                ],
+            }
+            for section in source["sections"]
+        ],
+        "outcomes": source["outcomes"],
+        "resources": source["resources"],
+        "media": source["media"],
+    }
+    replaced = client.put(
+        f"/api/v1/admin/courses/{course['id']}/content", json=content, headers=headers
+    )
+    assert replaced.status_code == 200
+    comments = client.get("/api/v1/admin/comments?status=all").get_json()["data"]
+    comment_id = comment.get_json()["data"]["id"]
+    saved_comment = next(item for item in comments if item["id"] == comment_id)
+    assert saved_comment["lesson_id"] is None
 
 
 def test_cancelled_payment_and_order_validation(client, app) -> None:  # type: ignore[no-untyped-def]
     seed_academy(app.extensions["container"])
     _admin(client, app)
     headers = {"X-CSRF-TOKEN": client.get_cookie("csrf_access_token").value}
+    assert client.put(
+        "/api/v1/me/profile",
+        headers=headers,
+        json={
+            "full_name": "Principal Admin",
+            "email": "admin@example.com",
+            "phone": "+989121234567",
+        },
+    ).status_code == 200
     assert (
         client.post(
             "/api/v1/orders",

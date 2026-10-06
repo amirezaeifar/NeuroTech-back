@@ -11,10 +11,13 @@ from email_validator import EmailNotValidError, validate_email
 class Role(StrEnum):
     USER = "user"
     SPECIALIST = "specialist"
+    CONTENT_MANAGER = "content_manager"
     ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
 
 
 class UserStatus(StrEnum):
+    PENDING = "pending"
     ACTIVE = "active"
     SUSPENDED = "suspended"
 

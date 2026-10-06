@@ -4,9 +4,12 @@ Backend API for the NeuroTech platform, built with Python and Flask using a
 Semi-Clean modular monolith architecture.
 
 The current MVP includes MariaDB migrations, Redis-backed OTP and rate limiting,
-JWT cookie authentication, role checks, the Academy catalogue, enrollments,
-lesson progress, moderated comments, orders, and an idempotent development
-payment gateway. HTTP errors use RFC 9457 Problem Details.
+JWT cookie authentication, role checks, Academy and product catalogues,
+enrollments, lesson progress, moderated comments, product inquiries, direct
+orders, local asset uploads, events/reservations, and idempotent development
+payment gateways. It also includes bilingual partner profiles, global-trade
+documents, and publishable page-content overrides for the dynamic sections of
+the website. HTTP errors use RFC 9457 Problem Details.
 
 See [the development guide](docs/development.md) for the WSL2 service setup,
 migrations, seed data, health checks, backup, and restore workflow.
@@ -230,13 +233,59 @@ file metadata and relative paths, not binary file contents.
 Fonts that ship with the frontend remain in the frontend repository unless
 administrators need to manage them dynamically.
 
-## MVP status
+The upload API accepts small images, PDFs, text files, and web fonts up to 8 MB.
+It rejects executable and video extensions. Files are stored under a random
+key, while their original name, MIME type, size, SHA-256 digest, visibility,
+and relative key are held in MariaDB.
 
-Roadmap phases 0–5 are implemented: the data foundation, JWT/OTP authentication,
-Academy catalogue, enrollment/progress/moderation, and the fake checkout flow.
-See the development guide for WSL2 provisioning and local verification. Later
-product, event, CMS, and production deployment phases intentionally remain out
-of the MVP.
+## YouTube course playlists
+
+Course video bytes never pass through this backend. Set
+`youtube_playlist_id` on a course from the Admin course API. The frontend loads
+that playlist through the YouTube iframe player and treats each lesson's
+position as the corresponding playlist position. Lesson records remain in the
+database for titles, access rules, and progress tracking; their legacy
+`video_reference` is a fallback when a playlist has not yet been assigned.
+
+Store only the playlist ID (for example, the value after `list=`), not the full
+YouTube URL. The channel or playlist must permit embedding.
+
+## Product sale modes
+
+Every product has exactly one `sale_mode`:
+
+- `direct`: requires stock and at least one IRR/USD price; it can enter the cart
+  and continue to a product order and payment.
+- `inquiry`: has no checkout price and accepts customer quotation requests with
+  the `pending`, `answered`, `closed`, or `rejected` workflow.
+
+## Implementation status
+
+Roadmap phases 0–9 are implemented: the data foundation, JWT/OTP authentication,
+Academy, enrollment/progress/moderation, course checkout, products, direct
+product sales and inquiries, safe local asset uploads, YouTube course playlists,
+and events with capacity-aware reservations and speaker-to-user-profile links.
+The admin manages products, events, partner resumes and guest support tickets.
+Global Trade and general page copy are static in the frontend; legacy trade and
+page-content API records remain preserved but are no longer used by the site.
+The Partners page introduction stays static while profile cards and resumes read
+from the same partner API. Contact page copy stays static; its form persists tickets.
+Real SMS and payment provider adapters and production deployment remain later work.
+
+## Admin content API
+
+Admin and specialist roles can manage the dynamic website sections through:
+
+- `/api/v1/admin/products` and `/api/v1/admin/product-categories`
+- `/api/v1/admin/events`
+- `/api/v1/admin/partners`
+- `/api/v1/admin/trade-documents`
+- `/api/v1/admin/page-content`
+
+Partner profiles and global-trade documents have public read endpoints under
+`/api/v1/partners` and `/api/v1/trade-documents`. Draft or archived records are
+never returned by public endpoints. The page-content API only accepts the five
+managed page keys listed above and rejects `home`, `about`, and `contact`.
 
 ## Contributing
 
@@ -246,3 +295,62 @@ of the MVP.
 - Do not place business rules in routes or ORM models.
 - Do not commit `.env`, credentials, generated uploads, or local databases.
 - Update this README whenever setup, configuration, or architecture changes.
+
+## Admin refresh and guest support (2026-09-10)
+
+Apply `python -m alembic upgrade head` (revision `20260910_0009`), then run
+`python -m flask --app app:create_app seed-partners`. The latter imports the four
+original bilingual frontend resumes from `app/data/partners.json`, skipping any
+existing slug so later administrator edits are preserved.
+
+Course translations now include an optional `summary`; public course payloads
+include `images` for `cover_light`, `cover_dark`, `header_light`, `header_dark`.
+Product translations have a `details` object for per-product specifications,
+features, certifications, clinical evidence, software details and brochure links.
+Empty arrays remain empty on public pages instead of falling back to demo claims.
+
+Guest support endpoints:
+
+- `POST /api/v1/tickets`: name, valid phone, subject, message, optional email and
+  `locale` (`fa` or `en`). No account required; rate limited to 5/minute.
+- `GET /api/v1/tickets/track/{token}`: unguessable tracking token returned on
+  submission; public response excludes contact details and internal SMS metadata.
+- `GET /api/v1/admin/tickets`: admin-only, `q`, `status`, `page`, `page_size`.
+- `GET /api/v1/admin/tickets/{id}`: admin contact details and conversation history.
+- `PATCH /api/v1/admin/tickets/{id}`: `status`, `reply`, and the current `version`.
+  Statuses: `submitted`, `in_progress`, `resolved`. Stale writes return 409;
+  resolving a request requires a response. Responses are visible via guest tracking.
+
+Ticket history and SMS notification results persist in MariaDB. `SMS_PROVIDER=fake`
+records simulated notifications for receipt, progress and completion; no SMS is
+actually delivered. Keep the tracking link shown after submission. Notifications
+use `FRONTEND_URL`; adapter failures leave the ticket saved and record `failed` in
+its history. The existing SMS interface remains the replacement point for a real
+provider. Administrators currently respond in the website; mock SMS is a notice,
+not a live messaging integration.
+
+Browser verification: `tests/browser_fixture.py <temporary-cookie-file>` starts a
+seeded temporary SQLite backend on 5001, then removes its temporary data on exit.
+Use the frontend's `tests/admin.browser.cjs` with Vite on 5174 and
+`VITE_API_BASE_URL=http://127.0.0.1:5001/api/v1`. This never uses the development DB.
+# Real email, SMS, and country counts
+
+For real delivery, set `EMAIL_PROVIDER=smtp` and `SMS_PROVIDER=kavenegar` in your private
+`.env`. Gmail uses `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`,
+`SMTP_USERNAME=neuro.tech.pishro@gmail.com`, and `EMAIL_FROM` with the same address.
+Set `SMTP_PASSWORD` to a Google **App Password** for that mailbox, never the account
+password. Set `KAVENEGAR_API_KEY` from your Kavenegar account, `KAVENEGAR_SENDER=20006535`,
+and `KAVENEGAR_LOGIN_TEMPLATE=surgitrack-login`. The login template must accept the
+single `token` supplied by the app. Do not commit credentials.
+
+Country counts use the free DB-IP Country Lite `.mmdb` file at `GEOIP_DATABASE_PATH`.
+Run `python scripts/update_geoip.py` from this directory, then schedule it monthly
+to keep the database current. No account is needed. DB-IP requires attribution on
+the page showing country statistics. Set `TRUSTED_PROXY_IPS` to the
+actual reverse proxy addresses so client IPs are read from their forwarded header.
+Unknown and private IPs do not contribute to a country count.
+
+Event reservations now require a verified account email. Requesting a seat emails
+a confirmation link; the seat is assigned only when that link is opened within
+24 hours. Capacity is checked again at confirmation, so a pending link does not
+guarantee a seat.

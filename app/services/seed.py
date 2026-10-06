@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -16,7 +17,98 @@ from app.core.academy_models import (
     LessonTranslation,
     SectionTranslation,
 )
+from app.core.catalog_models import Event, Product, ProductCategory, ProductCategoryTranslation
 from app.services.academy import academy_service_from_container
+from app.services.catalog import catalog_service_from_container
+from app.services.events import event_service_from_container
+
+PRODUCT_CATEGORY = {
+    "slug": "neurotechnology",
+    "position": 1,
+    "translations": [
+        {"locale": "en", "title": "Neurotechnology"},
+        {"locale": "fa", "title": "فناوری‌های عصبی"},
+    ],
+}
+
+PRODUCTS = [
+    {
+        "slug": "eeg-headset",
+        "sku": "NT-EEG-001",
+        "category_slug": "neurotechnology",
+        "sale_mode": "direct",
+        "stock_quantity": 12,
+        "translations": [
+            {
+                "locale": "en",
+                "name": "EEG Headset",
+                "short_description": "A lightweight research EEG headset.",
+                "description": "A portable EEG headset for education and research projects.",
+            },
+            {
+                "locale": "fa",
+                "name": "هدست EEG",
+                "short_description": "هدست سبک EEG برای پژوهش.",
+                "description": "هدست قابل حمل EEG برای پروژه‌های آموزشی و پژوهشی.",
+            },
+        ],
+        "prices": [{"currency": "IRR", "amount_minor": 850_000_000}],
+        "media": [],
+    },
+    {
+        "slug": "custom-neural-electrode",
+        "sku": "NT-ELECTRODE-CUSTOM",
+        "category_slug": "neurotechnology",
+        "sale_mode": "inquiry",
+        "stock_quantity": None,
+        "translations": [
+            {
+                "locale": "en",
+                "name": "Custom Neural Electrode",
+                "short_description": "Custom electrode design for research teams.",
+                "description": "Request a quotation based on geometry and quantity.",
+            },
+            {
+                "locale": "fa",
+                "name": "الکترود عصبی سفارشی",
+                "short_description": "طراحی سفارشی الکترود برای تیم‌های پژوهشی.",
+                "description": "بر اساس هندسه و تعداد مورد نیاز، استعلام قیمت ثبت کنید.",
+            },
+        ],
+        "prices": [],
+        "media": [],
+    },
+]
+
+EVENTS = [
+    {
+        "slug": "neurotechnology-webinar",
+        "kind": "online",
+        "status": "upcoming",
+        "starts_at": datetime.fromisoformat("2027-01-20T17:00:00+03:30"),
+        "ends_at": datetime.fromisoformat("2027-01-20T19:00:00+03:30"),
+        "timezone": "Asia/Tehran",
+        "capacity": 250,
+        "online_url": "https://youtube.com/@NeuroTech",
+        "venue": None,
+        "translations": [
+            {
+                "locale": "en",
+                "title": "Neurotechnology Webinar",
+                "summary": "Current applications of neurotechnology.",
+                "description": "An online session with researchers and specialists.",
+                "host_label": "NeuroTech Team",
+            },
+            {
+                "locale": "fa",
+                "title": "وبینار فناوری‌های عصبی",
+                "summary": "کاربردهای روز فناوری‌های عصبی.",
+                "description": "نشستی آنلاین با پژوهشگران و متخصصان این حوزه.",
+                "host_label": "تیم نوروتک",
+            },
+        ],
+    }
+]
 
 COURSES = [
     {
@@ -272,3 +364,39 @@ def seed_academy(container) -> int:  # type: ignore[no-untyped-def]
         if should_publish and stored_id:
             service.publish(UUID(str(stored_id)))
     return created
+
+
+def seed_catalog_and_events(container) -> tuple[int, int]:  # type: ignore[no-untyped-def]
+    catalog = catalog_service_from_container(container)
+    event_service = event_service_from_container(container)
+    product_count = 0
+    event_count = 0
+    with container.database.session() as session:
+        category = session.scalar(
+            select(ProductCategory)
+            .join(ProductCategory.translations)
+            .where(
+                ProductCategoryTranslation.locale == "en",
+                ProductCategoryTranslation.title == PRODUCT_CATEGORY["translations"][0]["title"],
+            )
+        )
+    if category is None:
+        created_category = catalog.create_category(PRODUCT_CATEGORY)
+        category_slug = created_category["slug"]
+    else:
+        category_slug = category.slug
+    for item in PRODUCTS:
+        with container.database.session() as session:
+            product_id = session.scalar(select(Product.id).where(Product.sku == item["sku"]))
+        if product_id is None:
+            created = catalog.create_product({**item, "category_slug": category_slug})
+            catalog.publish_product(UUID(created["id"]), True)
+            product_count += 1
+    for item in EVENTS:
+        with container.database.session() as session:
+            event_id = session.scalar(select(Event.id).where(Event.slug == item["slug"]))
+        if event_id is None:
+            created = event_service.create(item)
+            event_service.publish(UUID(created["id"]), True)
+            event_count += 1
+    return product_count, event_count

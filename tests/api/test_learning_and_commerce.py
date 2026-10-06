@@ -17,14 +17,37 @@ def _authenticated_client(client, app):  # type: ignore[no-untyped-def]
         },
     )
     token = (
-        app.extensions["container"].email_sender.sent_messages[-1].body.split("verify_email=", 1)[1]
+        app.extensions["container"].email_sender.sent_messages[-1].body.split("verify_email=", 1)[1].splitlines()[0]
     )
     client.post("/api/v1/auth/email/verify", json={"token": token})
     client.post(
         "/api/v1/auth/login/password",
         json={"email": "academy@example.com", "password": "secure-pass-123"},
     )
-    return {"X-CSRF-TOKEN": client.get_cookie("csrf_access_token").value}
+    headers = {"X-CSRF-TOKEN": client.get_cookie("csrf_access_token").value}
+    profile = client.put(
+        "/api/v1/me/profile",
+        json={
+            "full_name": "Academy Member",
+            "email": "academy@example.com",
+            "phone": "+989121234567",
+            "address": "12 Neural Avenue",
+        },
+        headers=headers,
+    )
+    assert profile.status_code == 200
+    saved_profile = client.get("/api/v1/me/profile")
+    assert saved_profile.status_code == 200
+    assert saved_profile.get_json()["data"]["address"] == "12 Neural Avenue"
+    # Response-only metadata such as ``complete`` must not turn a retry from a
+    # stale/open checkout tab into an unknown-field 422.
+    retried_profile = client.put(
+        "/api/v1/me/profile",
+        json=saved_profile.get_json()["data"],
+        headers=headers,
+    )
+    assert retried_profile.status_code == 200
+    return headers
 
 
 def test_free_enrollment_progress_and_pending_comment_are_idempotent(client, app) -> None:  # type: ignore[no-untyped-def]
@@ -67,7 +90,7 @@ def test_free_enrollment_progress_and_pending_comment_are_idempotent(client, app
     pathway = client.get("/api/v1/me/pathway?locale=en").get_json()["data"]
     assert pathway["user"] == "Academy Member"
     assert pathway["courses"][0]["slug"] == "clinical-neurology"
-    assert pathway["courses"][0]["modules"][0]["status"] == "in-progress"
+    assert pathway["courses"][0]["modules"][0]["status"] == "completed"
 
     comment = client.post(
         "/api/v1/courses/clinical-neurology/comments",
@@ -81,7 +104,9 @@ def test_free_enrollment_progress_and_pending_comment_are_idempotent(client, app
     academy_service_from_container(app.extensions["container"]).archive(UUID(detail["id"]))
     assert client.get("/api/v1/courses/clinical-neurology/access").status_code == 404
     assert client.get("/api/v1/courses/clinical-neurology/comments").get_json()["data"] == []
-    assert client.get("/api/v1/me/pathway").get_json()["data"]["courses"] == []
+    remaining = client.get("/api/v1/me/pathway").get_json()["data"]["courses"]
+    assert all(course["slug"] != "clinical-neurology" for course in remaining)
+    assert all(course["modules"] == [] for course in remaining)
     assert (
         client.put(
             progress_url,
@@ -116,3 +141,43 @@ def test_fake_payment_callback_is_idempotent_and_grants_access(client, app) -> N
     assert access.get_json()["data"]["enrolled"] is True
     assert access.get_json()["data"]["entitled"] is True
     assert access.get_json()["data"]["can_access"] is True
+
+
+def test_lessons_unlock_in_order_at_ninety_percent(client, app) -> None:  # type: ignore[no-untyped-def]
+    seed_academy(app.extensions["container"])
+    headers = _authenticated_client(client, app)
+    client.post("/api/v1/courses/clinical-neurology/enroll", headers=headers)
+    detail = client.get("/api/v1/courses/clinical-neurology").get_json()["data"]
+    lessons = [lesson for section in detail["sections"] for lesson in section["lessons"]]
+    first, second = lessons[:2]
+
+    blocked = client.put(
+        f"/api/v1/me/lessons/{second['id']}/progress",
+        json={"position_seconds": 10, "completed": True},
+        headers=headers,
+    )
+    assert blocked.status_code == 403
+
+    almost = client.put(
+        f"/api/v1/me/lessons/{first['id']}/progress",
+        json={"position_seconds": 1079, "completed": True},
+        headers=headers,
+    )
+    assert almost.get_json()["data"]["completed"] is False
+    access = client.get(
+        "/api/v1/courses/clinical-neurology/access", headers=headers
+    ).get_json()["data"]
+    assert access["lessons"][1]["locked"] is True
+    assert access["lessons"][1]["video_reference"] is None
+
+    threshold = client.put(
+        f"/api/v1/me/lessons/{first['id']}/progress",
+        json={"position_seconds": 1080, "completed": False},
+        headers=headers,
+    )
+    assert threshold.get_json()["data"]["completed"] is True
+    access = client.get(
+        "/api/v1/courses/clinical-neurology/access", headers=headers
+    ).get_json()["data"]
+    assert "locked" not in access["lessons"][1]
+    assert access["lessons"][1]["video_reference"]

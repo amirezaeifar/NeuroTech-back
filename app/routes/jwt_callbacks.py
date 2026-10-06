@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from http import HTTPStatus
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from flask import current_app
+from sqlalchemy import func, update
 
 from app.core.extensions import jwt
+from app.core.auth_models import User
 from app.routes.errors import _problem_response
 from app.services.auth import auth_service_from_container
 
@@ -23,7 +26,31 @@ def register_jwt_callbacks() -> None:
         except (TypeError, ValueError):
             return True
         service = auth_service_from_container(current_app.extensions["container"])
-        return service.session_is_revoked(parsed)
+        if service.session_is_revoked(parsed):
+            return True
+        with service.uow_factory() as uow:
+            user = uow.session.get(User, UUID(payload["sub"]))
+            if user is None or user.status != "active":
+                return True
+            now = datetime.now(UTC)
+            last = user.last_active_at
+            if last and (last.replace(tzinfo=UTC) if last.tzinfo is None else last) < now - timedelta(days=30):
+                uow.session.execute(
+                    update(User.__table__)
+                    .where(User.id == user.id, User.status == "active")
+                    .values(status="suspended", version=User.version + 1)
+                )
+                uow.commit()
+                return True
+            # Activity is a heartbeat, not an edit of the versioned user record.
+            # A direct update avoids optimistic-lock conflicts across parallel API calls.
+            uow.session.execute(
+                update(User.__table__)
+                .where(User.id == user.id, User.status == "active")
+                .values(activated_at=func.coalesce(User.activated_at, now), last_active_at=now)
+            )
+            uow.commit()
+            return False
 
     @jwt.unauthorized_loader
     def missing_token(detail: str):  # type: ignore[no-untyped-def]

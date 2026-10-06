@@ -1,0 +1,210 @@
+[
+  {
+    "slug": "journal-neural-connections",
+    "category": "scientific",
+    "cover_url": "/journal/journal-neural-connections.svg",
+    "cover_alt": "زبان پنهان مغز؛ از نورون تا شبکه / The hidden language of neural connections",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "زبان پنهان مغز؛ از نورون تا شبکه",
+        "excerpt": "سفری کوتاه به دنیای پیام‌های عصبی؛ جایی که ارتباط میان سلول‌ها، از خود سلول‌ها هم دیدنی‌تر است.",
+        "body": "مغز را می‌توان از دریچهٔ ارتباط دید: سلول‌هایی که پیام می‌گیرند، آن را منتقل می‌کنند و در کنار یکدیگر شبکه می‌سازند.\n\n## یک سلول، چند مسیر\nنورون‌ها بدنهٔ سلولی، دندریت و آکسون دارند. این ساختارها به دریافت و انتقال پیام کمک می‌کنند؛ اما نورون تنها بازیگر این جهان نیست. سلول‌های گلیا نیز در پشتیبانی از عملکرد دستگاه عصبی نقش دارند.\n\n## در فاصلهٔ دو نورون\nدر بسیاری از سیناپس‌ها، پیام الکتریکی در انتهای آکسون به آزاد شدن پیام‌رسان شیمیایی می‌انجامد. این مواد بر سلول بعدی اثر می‌گذارند.\n\n## از جزئیات به تصویر بزرگ\nبرای شروع مطالعه، سه پرسش را کنار هم بگذارید: پیام از کجا می‌آید؟ از کدام مسیر می‌گذرد؟ و چه چیزی را می‌توان دربارهٔ مقصدش فهمید؟ این پرسش‌ها نقطهٔ آغاز خوبی برای ورق زدن دنیای علوم اعصاب هستند.\n\n## برای مطالعهٔ بیشتر\n[NICHD · The nervous system](https://www.nichd.nih.gov/health/topics/neuro/conditioninfo/parts)",
+        "seo_title": "زبان پنهان مغز؛ از نورون تا شبکه",
+        "seo_description": "سفری کوتاه به دنیای پیام‌های عصبی؛ جایی که ارتباط میان سلول‌ها، از خود سلول‌ها هم دیدنی‌تر است.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "The hidden language of neural connections",
+        "excerpt": "A closer look at the cells and connections behind the nervous system.",
+        "body": "The brain invites us to think in connections: cells receiving messages, passing them on and participating in networks.\n\n## One cell, several pathways\nNeurons have a cell body, dendrites and an axon. These structures support communication. Glial cells also play essential supporting roles in the nervous system.\n\n## Between two neurons\nAt many synapses, an electrical signal reaching an axon terminal leads to the release of chemical messengers. These act on the next cell.\n\n## Seeing the larger picture\nBegin with three questions: where does a message originate, which path does it follow, and what can we learn about its destination? Keep those questions in mind as you explore the next article.\n\n## Further reading\n[NICHD · The nervous system](https://www.nichd.nih.gov/health/topics/neuro/conditioninfo/parts)",
+        "seo_title": "The hidden language of neural connections",
+        "seo_description": "A closer look at the cells and connections behind the nervous system.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-reading-brainwaves",
+    "category": "scientific",
+    "cover_url": "/journal/journal-reading-brainwaves.svg",
+    "cover_alt": "روی خط مغز؛ آشنایی با EEG / On the wavelength of the brain",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "روی خط مغز؛ آشنایی با EEG",
+        "excerpt": "خط‌هایی که روی صفحه حرکت می‌کنند چه چیزی را ثبت می‌کنند؟ مقدمه‌ای کوتاه بر نوار مغز.",
+        "body": "پیش از آنکه به یک نمودار معنا بدهیم، باید بدانیم چگونه ثبت شده است. EEG راهی برای ثبت فعالیت الکتریکی مغز از طریق الکترودهای قرارگرفته روی پوست سر است.\n\n## از الکترود تا نمودار\nدستگاه، سیگنال‌های دریافت‌شده را به شکل موج نمایش می‌دهد. ثبت این فعالیت با وارد کردن برق به مغز تفاوت دارد؛ الکترودها فعالیت را دریافت می‌کنند.\n\n## خواندن با توجه به زمینه\nحرکت و عوامل دیگر می‌توانند بر ثبت اثر بگذارند. تفسیر نوار مغز به بررسی متخصص و زمینهٔ بالینی نیاز دارد.\n\n## تمرین مشاهده\nبه جای حدس زدن معنی هر قله، ابتدا عنوان محور، مقیاس زمان و توضیح شرایط ثبت را پیدا کنید. **دیدن دقیق، پیش از نتیجه‌گیری آغاز می‌شود.**\n\n## برای مطالعهٔ بیشتر\n[MedlinePlus · EEG](https://medlineplus.gov/ency/article/003931.htm)",
+        "seo_title": "روی خط مغز؛ آشنایی با EEG",
+        "seo_description": "خط‌هایی که روی صفحه حرکت می‌کنند چه چیزی را ثبت می‌کنند؟ مقدمه‌ای کوتاه بر نوار مغز.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "On the wavelength of the brain",
+        "excerpt": "What do the moving traces actually record? An introduction to EEG.",
+        "body": "Before interpreting a trace, ask how it was recorded. EEG records electrical activity in the brain using electrodes placed on the scalp.\n\n## From electrode to waveform\nThe equipment displays recorded signals as waves. Recording activity is different from sending electricity into the brain: the electrodes receive signals.\n\n## Context matters\nMovement and other factors can affect the recording. Interpreting an EEG requires professional assessment and clinical context.\n\n## Practise observation\nInstead of guessing what each peak means, first locate the axis labels, time scale and description of recording conditions. **Careful observation comes before a conclusion.**\n\n## Further reading\n[MedlinePlus · EEG](https://medlineplus.gov/ency/article/003931.htm)",
+        "seo_title": "On the wavelength of the brain",
+        "seo_description": "What do the moving traces actually record? An introduction to EEG.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-mri-perspective",
+    "category": "scientific",
+    "cover_url": "/journal/journal-mri-perspective.svg",
+    "cover_alt": "از تصویر تا بینش؛ دریچه‌ای به MRI / From image to insight: a window into MRI",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "از تصویر تا بینش؛ دریچه‌ای به MRI",
+        "excerpt": "چگونه میدان مغناطیسی و امواج رادیویی، تصویری از ساختارهای درون بدن می‌سازند؟",
+        "body": "تصویربرداری MRI دریچه‌ای به ساختارهای بدن باز می‌کند. این روش از میدان مغناطیسی و امواج رادیویی استفاده می‌کند و بر پرتو ایکس متکی نیست.\n\n## تصویر چگونه شکل می‌گیرد؟\nسیگنال‌های مرتبط با پروتون‌های بافت دریافت و پردازش می‌شوند. تفاوت در ویژگی‌های بافت‌ها به ایجاد کنتراست در تصویر کمک می‌کند.\n\n## هر تصویر، یک پرسش\nMRI برای نمایش بافت نرم کاربرد دارد. نوع تصویربرداری و تنظیمات آن با پرسش مورد بررسی ارتباط دارد؛ همهٔ تصاویر برای یک هدف تهیه نمی‌شوند.\n\n## نگاه دقیق‌تر\nهنگام دیدن یک تصویر آموزشی، جهت برش و توضیح همراه آن را بخوانید. تصویر زیبا دعوت به مشاهده است؛ درک آن با پرسش و زمینهٔ درست کامل می‌شود.\n\n## برای مطالعهٔ بیشتر\n[NIBIB · Magnetic Resonance Imaging](https://www.nibib.nih.gov/science-education/science-topics/magnetic-resonance-imaging-mri)",
+        "seo_title": "از تصویر تا بینش؛ دریچه‌ای به MRI",
+        "seo_description": "چگونه میدان مغناطیسی و امواج رادیویی، تصویری از ساختارهای درون بدن می‌سازند؟",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "From image to insight: a window into MRI",
+        "excerpt": "How magnetic fields and radio waves help create images of structures inside the body.",
+        "body": "MRI offers a window into structures inside the body. It uses magnetic fields and radio waves rather than X-rays.\n\n## How the image takes shape\nSignals associated with protons in tissue are detected and processed. Differences in tissue properties help create image contrast.\n\n## An image begins with a question\nMRI is useful for visualising soft tissue. The type of scan and its settings relate to the question being investigated; images are not all made for the same purpose.\n\n## Look more closely\nWhen viewing an educational image, read its orientation and caption. A beautiful image invites observation. Understanding begins with questions and context.\n\n## Further reading\n[NIBIB · Magnetic Resonance Imaging](https://www.nibib.nih.gov/science-education/science-topics/magnetic-resonance-imaging-mri)",
+        "seo_title": "From image to insight: a window into MRI",
+        "seo_description": "How magnetic fields and radio waves help create images of structures inside the body.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-beyond-the-brain",
+    "category": "scientific",
+    "cover_url": "/journal/journal-beyond-the-brain.svg",
+    "cover_alt": "فراتر از مغز؛ نقشه‌ای از دستگاه عصبی / Beyond the brain: a connected system",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "فراتر از مغز؛ نقشه‌ای از دستگاه عصبی",
+        "excerpt": "داستان دستگاه عصبی در مغز تمام نمی‌شود؛ نگاهی به ارتباط مرکز و پیرامون.",
+        "body": "وقتی از علوم اعصاب حرف می‌زنیم، تنها دربارهٔ مغز صحبت نمی‌کنیم. نخاع و اعصاب پیرامونی نیز بخش‌هایی از این تصویر هستند.\n\n## مرکز و پیرامون\nمغز و نخاع دستگاه عصبی مرکزی را تشکیل می‌دهند. اعصاب خارج از آن‌ها در دستگاه عصبی پیرامونی قرار می‌گیرند و ارتباط با بخش‌های مختلف بدن را برقرار می‌کنند.\n\n## چند مسیر برای شناخت\nبررسی دستگاه عصبی می‌تواند از تصویربرداری تا ثبت فعالیت الکتریکی و ارزیابی عملکرد را دربر بگیرد. هر ابزار، زاویه‌ای از موضوع را نشان می‌دهد.\n\n## یک نقشه برای ادامهٔ مطالعه\nروی کاغذ دو ستون بکشید: ساختار و عملکرد. با هر مطلب تازه، پرسش‌های خود را در یکی از آن‌ها بنویسید. این نقشهٔ شخصی می‌تواند مسیر مطالعهٔ بعدی شما را روشن‌تر کند.\n\n## برای مطالعهٔ بیشتر\n[MedlinePlus · Neurosciences](https://medlineplus.gov/ency/article/007456.htm)",
+        "seo_title": "فراتر از مغز؛ نقشه‌ای از دستگاه عصبی",
+        "seo_description": "داستان دستگاه عصبی در مغز تمام نمی‌شود؛ نگاهی به ارتباط مرکز و پیرامون.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "Beyond the brain: a connected system",
+        "excerpt": "The story does not end at the brain. Exploring the connection between centre and periphery.",
+        "body": "Neuroscience extends beyond the brain. The spinal cord and peripheral nerves are also part of the picture.\n\n## Centre and periphery\nThe brain and spinal cord form the central nervous system. Nerves outside them belong to the peripheral nervous system, connecting with different parts of the body.\n\n## Several ways to explore\nInvestigations can include imaging, electrical recordings and assessments of function. Each tool offers a different perspective.\n\n## Make a reading map\nDraw two columns: structure and function. As you read, place your questions in one of them. This personal map can help you choose what to explore next.\n\n## Further reading\n[MedlinePlus · Neurosciences](https://medlineplus.gov/ency/article/007456.htm)",
+        "seo_title": "Beyond the brain: a connected system",
+        "seo_description": "The story does not end at the brain. Exploring the connection between centre and periphery.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-art-of-curiosity",
+    "category": "blog",
+    "cover_url": "/journal/journal-art-of-curiosity.svg",
+    "cover_alt": "هنر کنجکاو ماندن؛ یک سؤال بهتر / The art of staying curious",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "هنر کنجکاو ماندن؛ یک سؤال بهتر",
+        "excerpt": "گاهی یک سؤال خوب، از چندین پاسخ آماده راهگشاتر است. یادداشتی دربارهٔ لذت کشف در دنیای علم.",
+        "body": "بعضی مقاله‌ها را با یک پاسخ می‌بندیم؛ بعضی دیگر را با چند سؤال تازه. شاید ارزش یک مطالعهٔ خوب، درست در همین مکث آخر باشد: لحظه‌ای که متوجه می‌شویم هنوز چیزی برای کشف کردن وجود دارد.\n\n## پیش از جست‌وجو، بنویسید\nموضوعی را انتخاب کنید که واقعاً برایتان جالب است و آن را در یک جمله بنویسید. بعد به جای جست‌وجوی یک واژهٔ کلی، پرسشی مشخص بسازید. «می‌خواهم دربارهٔ مغز بدانم» شروع است؛ «این تصویر چگونه ساخته شده؟» مسیر روشن‌تری برای قدم بعدی دارد.\n\n## برای ندانستن جا بگذارید\nدفتر مطالعه لازم نیست مجموعه‌ای از جواب‌های قطعی باشد. می‌تواند جایی برای تردید، طرح یک ایده یا کنار هم گذاشتن دو نگاه متفاوت باشد. علامت سؤال گاهی بهترین نشانهٔ یک صفحهٔ خوانده‌شده است.\n\n## یک عادت کوچک\nدر پایان هر مطالعه، سه خط بنویسید:\n- چه چیزی برایم تازه بود؟\n- کدام بخش هنوز روشن نیست؟\n- دوست دارم بعد از این چه بخوانم؟\n\nلازم نیست دفترتان کامل باشد. کافی است گفت‌وگوی شما با آنچه می‌خوانید، ادامه پیدا کند.",
+        "seo_title": "هنر کنجکاو ماندن؛ یک سؤال بهتر",
+        "seo_description": "گاهی یک سؤال خوب، از چندین پاسخ آماده راهگشاتر است. یادداشتی دربارهٔ لذت کشف در دنیای علم.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "The art of staying curious",
+        "excerpt": "Sometimes a better question opens more doors than a ready-made answer.",
+        "body": "Some articles end with an answer. Others leave us with new questions. Perhaps the pleasure of reading lives in that final pause: the moment we notice there is still something to discover.\n\n## Write before searching\nChoose something that truly interests you and put it into one sentence. Then turn the topic into a specific question. “I want to learn about the brain” is a beginning. “How was this image made?” gives the next step a clearer direction.\n\n## Leave room for uncertainty\nA reading notebook need not be a collection of final answers. It can hold doubts, sketches and two perspectives that do not yet fit together. A question mark can be the most useful mark on the page.\n\n## A small ritual\nAfter reading, write three lines:\n- What was new to me?\n- What remains unclear?\n- What would I like to read next?\n\nYour notebook does not need to be complete. It only needs to keep the conversation going.",
+        "seo_title": "The art of staying curious",
+        "seo_description": "Sometimes a better question opens more doors than a ready-made answer.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-reading-slowly",
+    "category": "blog",
+    "cover_url": "/journal/journal-reading-slowly.svg",
+    "cover_alt": "یک فنجان مکث، یک صفحه کشف / A pause, a page, a new perspective",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "یک فنجان مکث، یک صفحه کشف",
+        "excerpt": "دعوتی به خواندن آهسته‌تر؛ با حاشیه‌نویسی، سؤال و فرصت فکر کردن.",
+        "body": "این یادداشت دعوت به تمام کردن مقاله‌های بیشتر نیست. پیشنهادی است برای ساختن یک فضای شخصی: زمانی کوتاه که در آن، یک متن فرصت پیدا کند واقعاً دیده شود.\n\n## یک صفحه را انتخاب کنید\nمی‌توانید از یک بخش کوتاه شروع کنید. پیش از خواندن، به عنوان‌ها نگاه کنید و حدس بزنید نویسنده می‌خواهد چه پرسشی را دنبال کند. پس از خواندن، به همان حدس برگردید: کدام بخش مطابق انتظار بود و کدام بخش غافلگیرتان کرد؟\n\n## در حاشیه گفت‌وگو کنید\nکنار یک جمله، پرسش خودتان را بنویسید. کنار یک نمودار، چیزی را که نمی‌فهمید مشخص کنید. حاشیه‌نویسی لازم نیست زیبا یا رسمی باشد؛ کافی است رد نگاه شما در آن بماند.\n\n## پیش از صفحهٔ بعد\nیک جمله از برداشت خود بنویسید؛ نه بازنویسی جملهٔ نویسنده، بلکه آنچه برای خودتان معنا پیدا کرده است. اگر هنوز نمی‌توانید، شاید همان‌جا ارزش یک بار دیگر خواندن را داشته باشد.\n\nگاهی یک صفحهٔ خوب خوانده‌شده، موضوع گفت‌وگوی تمام یک روز می‌شود.",
+        "seo_title": "یک فنجان مکث، یک صفحه کشف",
+        "seo_description": "دعوتی به خواندن آهسته‌تر؛ با حاشیه‌نویسی، سؤال و فرصت فکر کردن.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "A pause, a page, a new perspective",
+        "excerpt": "An invitation to read with a little more space for notes, questions and reflection.",
+        "body": "This note is an invitation to make a little room for a text, rather than finish a larger stack of articles. A short reading session can have its own unhurried shape.\n\n## Choose a page\nStart with one section. Before reading, look at its headings and imagine the question the writer is following. Afterwards, return to your guess. What matched your expectations? What surprised you?\n\n## Have a conversation in the margins\nWrite a question beside a sentence. Mark the part of a diagram you do not yet understand. Notes need not be elegant or formal; they simply need to preserve your own response.\n\n## Before turning the page\nWrite one sentence about what the passage means to you. Use your own words. If the sentence will not come, perhaps that is the place to read again.\n\nA thoughtfully read page can become the beginning of a much longer conversation.",
+        "seo_title": "A pause, a page, a new perspective",
+        "seo_description": "An invitation to read with a little more space for notes, questions and reflection.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-designing-for-people",
+    "category": "blog",
+    "cover_url": "/journal/journal-designing-for-people.svg",
+    "cover_alt": "فناوری وقتی معنا دارد که انسانی باشد / Technology, with people in mind",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "فناوری وقتی معنا دارد که انسانی باشد",
+        "excerpt": "از یک برچسب خوانا تا یک مسیر روشن؛ تأملی دربارهٔ جزئیاتی که تجربهٔ استفاده را شکل می‌دهند.",
+        "body": "گاهی تفاوت یک تجربهٔ خوب در جزئیاتی پنهان است که در نگاه اول دیده نمی‌شوند: دکمه‌ای که پیدا می‌شود، متنی که فهمیده می‌شود و مسیری که نیاز به حدس زدن ندارد.\n\n## از یک موقعیت واقعی شروع کنیم\nبه جای طراحی برای یک کاربر مبهم، یک موقعیت را تصور کنید. کسی برای اولین بار وارد صفحه شده، اصطلاحات را نمی‌شناسد و می‌خواهد قدم بعدی را پیدا کند. چه چیزی باید زودتر دیده شود؟ چه توضیحی می‌تواند کوتاه‌تر و روشن‌تر باشد؟\n\n## زیبایی در خدمت فهم\nرنگ، فاصله و حرکت می‌توانند به نگاه جهت بدهند. پیشنهاد ما این است که هر جزئیات، دلیل روشنی برای حضور داشته باشد: تأکید بر یک انتخاب، نشان دادن تغییر یا ایجاد فرصتی برای مکث.\n\n## از خودمان بپرسیم\n- آیا عنوان، کار این بخش را توضیح می‌دهد؟\n- آیا وضعیت بعد از هر انتخاب مشخص است؟\n- آیا تجربه در صفحهٔ کوچک هم قابل فهم است؟\n\nبرای ما، نگاه انسانی به فناوری از همین سؤال‌های کوچک آغاز می‌شود.",
+        "seo_title": "فناوری وقتی معنا دارد که انسانی باشد",
+        "seo_description": "از یک برچسب خوانا تا یک مسیر روشن؛ تأملی دربارهٔ جزئیاتی که تجربهٔ استفاده را شکل می‌دهند.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "Technology, with people in mind",
+        "excerpt": "From a clear label to a considered interaction: reflections on designing an experience for people.",
+        "body": "A considered experience often lives in quiet details: a button that is easy to find, a label that makes sense and a path that does not require guessing.\n\n## Begin with a situation\nInstead of imagining an abstract user, picture a particular moment. Someone has opened a page for the first time, does not know the terminology and wants to find the next step. What should they notice first? Which explanation could be simpler?\n\n## Let beauty support understanding\nColour, spacing and movement can guide a composition. Our editorial proposal is that each detail should have a reason to be there: to clarify a choice, reveal a change or create a useful pause.\n\n## Ask small questions\n- Does the heading explain the section?\n- Is the result of a choice clear?\n- Does the experience make sense on a small screen?\n\nA human perspective on technology begins with questions like these.",
+        "seo_title": "Technology, with people in mind",
+        "seo_description": "From a clear label to a considered interaction: reflections on designing an experience for people.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  },
+  {
+    "slug": "journal-between-disciplines",
+    "category": "blog",
+    "cover_url": "/journal/journal-between-disciplines.svg",
+    "cover_alt": "جایی میان علم، طراحی و گفت‌وگو / Where disciplines meet",
+    "translations": [
+      {
+        "locale": "fa",
+        "title": "جایی میان علم، طراحی و گفت‌وگو",
+        "excerpt": "یک موضوع، چند زاویهٔ دید؛ دربارهٔ ارزشی که در شنیدن پرسش‌های دیگران پیدا می‌شود.",
+        "body": "یک تصویر از مغز را تصور کنید که روی میز یک گفت‌وگو قرار گرفته است. پژوهشگر دربارهٔ روش ثبت می‌پرسد، طراح به خوانایی تصویر نگاه می‌کند و دانشجو می‌خواهد بداند از کجا باید شروع کند. این یک صحنهٔ فرضی است، اما پرسش‌هایش آشنا هستند.\n\n## واژهٔ مشترک پیدا کنیم\nگاهی پیش از رسیدن به پاسخ، لازم است مطمئن شویم دربارهٔ یک چیز حرف می‌زنیم. از هر نفر بخواهیم اصطلاح اصلی بحث را با زبان خودش توضیح دهد. تفاوت پاسخ‌ها می‌تواند موضوع گفت‌وگو را روشن‌تر کند.\n\n## پرسش را زود نبندیم\nبه جای انتخاب فوری یک توضیح، دو یا سه برداشت را کنار هم نگه داریم. کدام بخش به داده نیاز دارد؟ کدام بخش مسئلهٔ نمایش است؟ و کدام بخش هنوز تعریف دقیقی ندارد؟\n\n## چیزی برای ادامه\nدر پایان، لازم نیست همهٔ سؤال‌ها حل شده باشند. یک پرسش روشن و یک قدم مشخص برای بررسی آن، می‌تواند نتیجهٔ خوبی برای یک گفت‌وگوی کوتاه باشد.\n\nکشف گاهی از جایی شروع می‌شود که به نگاه دیگری فرصت می‌دهیم.",
+        "seo_title": "جایی میان علم، طراحی و گفت‌وگو",
+        "seo_description": "یک موضوع، چند زاویهٔ دید؛ دربارهٔ ارزشی که در شنیدن پرسش‌های دیگران پیدا می‌شود.",
+        "seo_keywords": "نوروتک، مجله، علوم اعصاب"
+      },
+      {
+        "locale": "en",
+        "title": "Where disciplines meet",
+        "excerpt": "One subject, several perspectives. Making room for the questions another discipline brings.",
+        "body": "Imagine a brain image on a table. A researcher asks how it was recorded, a designer considers its legibility, and a student wonders where to begin. This is an imagined scene, but the questions are familiar.\n\n## Find shared language\nBefore reaching an answer, make sure everyone is discussing the same thing. Invite each person to explain the central term in their own words. Differences in those explanations can become useful starting points.\n\n## Keep the question open\nRather than choosing an explanation immediately, hold two or three readings side by side. Which part needs more evidence? Which is a presentation problem? Which still lacks a clear definition?\n\n## Leave with a next step\nNot every question needs to be settled by the end. One precise question and a concrete way to investigate it can be a worthwhile outcome.\n\nDiscovery sometimes begins by giving another perspective a little space.",
+        "seo_title": "Where disciplines meet",
+        "seo_description": "One subject, several perspectives. Making room for the questions another discipline brings.",
+        "seo_keywords": "NeuroTech, journal, neuroscience"
+      }
+    ]
+  }
+]

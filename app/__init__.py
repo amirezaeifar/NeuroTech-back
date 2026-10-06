@@ -8,17 +8,17 @@ from typing import Any
 
 from flask import Flask
 
-from app.bootstrap import bootstrap
-from app.cli import register_cli
-from app.core.config import Settings
-from app.routes import register_http_layer
-
 
 def create_app(
     environment: str | None = None,
     config_overrides: Mapping[str, Any] | None = None,
 ) -> Flask:
     """Create an isolated Flask application for the selected environment."""
+
+    from app.bootstrap import bootstrap
+    from app.cli import register_cli
+    from app.core.config import Settings
+    from app.routes import register_http_layer
 
     settings = Settings.from_env(environment)
     app = Flask(__name__)

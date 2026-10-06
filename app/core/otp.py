@@ -116,7 +116,10 @@ class RedisOtpService:
                     "Verification attempts are temporarily locked.", retry_after
                 )
             raise RateLimitExceededError("OTP request limit exceeded.", retry_after)
-        self.sms_sender.send(phone, f"NeuroTech verification code: {code}")
+        if hasattr(self.sms_sender, "send_verification"):
+            self.sms_sender.send_verification(phone, code)
+        else:
+            self.sms_sender.send(phone, f"NeuroTech verification code: {code}")
         return OtpChallenge(challenge_id)
 
     def verify(self, *, challenge_id: str, code: str) -> tuple[str, str]:

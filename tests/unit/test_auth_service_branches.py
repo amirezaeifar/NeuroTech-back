@@ -19,7 +19,7 @@ def _service(app):  # type: ignore[no-untyped-def]
 
 def _verify(service, app, email: str) -> None:  # type: ignore[no-untyped-def]
     token = (
-        app.extensions["container"].email_sender.sent_messages[-1].body.split("verify_email=", 1)[1]
+        app.extensions["container"].email_sender.sent_messages[-1].body.split("verify_email=", 1)[1].splitlines()[0]
     )
     service.verify_email(token)
 
@@ -87,10 +87,14 @@ def test_verification_and_invitation_expiry_conflict_branches(app) -> None:  # t
 def test_phone_and_session_rotation_branches(app) -> None:  # type: ignore[no-untyped-def]
     service = _service(app)
     phone = "+989121234567"
-    registered = service.register_phone(display_name="Phone User", phone=phone)
+    registered = service.register_phone(display_name="Phone User", phone=phone,
+        email="phone-user@example.com")
+    token = app.extensions["container"].email_sender.sent_messages[-1].body.split("verify_email=", 1)[1].splitlines()[0]
+    registered = service.verify_email(token)
     assert service.user_for_phone_login(phone) == registered
     with pytest.raises(ConflictError):
-        service.register_phone(display_name="Duplicate", phone=phone)
+        service.register_phone(display_name="Duplicate", phone=phone,
+            email="duplicate@example.com")
     with app.extensions["container"].database.session() as session:
         user = session.get(User, registered.id)
         assert user is not None

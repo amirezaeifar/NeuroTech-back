@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import delete, select
 
 from app.core.academy_models import Course, CoursePrice
-from app.core.auth_models import User
+from app.core.auth_models import User, UserProfile
 from app.core.commerce_models import Order, OrderItem, PaymentAttempt
 from app.domain.errors import ConflictError, NotFoundError, ValidationError
 from app.services.commerce import commerce_service_from_container
@@ -19,6 +19,15 @@ def _setup(app):  # type: ignore[no-untyped-def]
     with container.database.session() as session:
         user = User(display_name="Buyer", role="user", status="active")
         session.add(user)
+        session.flush()
+        session.add(
+            UserProfile(
+                user_id=user.id,
+                full_name="Buyer",
+                email="buyer@example.com",
+                phone="+989121234567",
+            )
+        )
         session.commit()
         return container, user.id, commerce_service_from_container(container)
 

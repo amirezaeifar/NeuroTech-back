@@ -7,8 +7,12 @@ from sqlalchemy import engine_from_config, pool
 
 import app.core.academy_models  # noqa: F401,E402
 import app.core.auth_models  # noqa: F401,E402
+import app.core.catalog_models  # noqa: F401,E402
 import app.core.commerce_models  # noqa: F401,E402
+import app.core.content_models  # noqa: F401,E402
+import app.core.governance_models  # noqa: F401,E402
 import app.core.learning_models  # noqa: F401,E402
+import app.core.ticket_models  # noqa: F401,E402
 from app.core.config import Settings
 from app.core.models import Base
 

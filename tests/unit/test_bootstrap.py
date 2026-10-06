@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 
 import pytest
@@ -13,6 +14,7 @@ from app.core.integrations.fake_sms import FakeSmsSender
 def _settings(monkeypatch: pytest.MonkeyPatch) -> Settings:
     monkeypatch.setenv("SECRET_KEY", "test-secret")
     monkeypatch.setenv("SMS_PROVIDER", "fake")
+    monkeypatch.setenv("EMAIL_PROVIDER", "fake")
     monkeypatch.setenv("PAYMENT_PROVIDER", "fake")
     return Settings.from_env("testing")
 
@@ -45,9 +47,41 @@ def test_fake_adapters_record_calls(monkeypatch: pytest.MonkeyPatch) -> None:
     container.redis.close()
 
 
+def test_fake_sms_logs_message_only_in_development(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    settings = replace(_settings(monkeypatch), environment="development")
+    container = bootstrap(settings)
+
+    with caplog.at_level(logging.INFO):
+        container.sms_sender.send("+989120000000", "NeuroTech verification code: 123456")
+
+    assert "DEVELOPMENT SMS to +989120000000" in caplog.text
+    assert "NeuroTech verification code: 123456" in caplog.text
+    container.database.dispose()
+    container.redis.close()
+
+
+def test_fake_email_logs_message_only_in_development(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    settings = replace(_settings(monkeypatch), environment="development")
+    container = bootstrap(settings)
+
+    with caplog.at_level(logging.WARNING):
+        container.email_sender.send(
+            "invitee@example.com", "Your invitation", "Invitation link: https://example.test"
+        )
+
+    assert "DEVELOPMENT EMAIL to invitee@example.com" in caplog.text
+    assert "Invitation link: https://example.test" in caplog.text
+    container.database.dispose()
+    container.redis.close()
+
+
 def test_bootstrap_rejects_unimplemented_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = _settings(monkeypatch)
     unsupported = replace(settings, sms_provider="real")
 
-    with pytest.raises(ConfigurationError, match="not implemented"):
+    with pytest.raises(ConfigurationError, match="Unknown SMS provider"):
         bootstrap(unsupported)

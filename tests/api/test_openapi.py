@@ -21,6 +21,20 @@ def test_openapi_contract_exposes_mvp_routes(client) -> None:  # type: ignore[no
         "/api/v1/courses/{slug}/access",
         "/api/v1/me/lessons/{lesson_id}/progress",
         "/api/v1/orders",
+        "/api/v1/products",
+        "/api/v1/product-orders",
+        "/api/v1/events",
+        "/api/v1/admin/files",
+        "/api/v1/partners",
+        "/api/v1/admin/partners",
+        "/api/v1/trade-documents",
+        "/api/v1/admin/trade-documents",
+        "/api/v1/page-content/{page_key}",
+        "/api/v1/admin/page-content",
+        "/api/v1/tickets",
+        "/api/v1/tickets/track/{token}",
+        "/api/v1/admin/tickets",
+        "/api/v1/admin/tickets/{ticket_id}",
     }.issubset(document["paths"])
     progress = document["paths"]["/api/v1/me/lessons/{lesson_id}/progress"]["put"]
     assert progress["requestBody"]["required"] is True

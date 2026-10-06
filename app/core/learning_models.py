@@ -48,6 +48,14 @@ class CourseComment(UuidPrimaryKeyMixin, TimestampMixin, Base):
     user_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True, native_uuid=False), ForeignKey("users.id"), nullable=False, index=True
     )
+    lesson_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True, native_uuid=False),
+        ForeignKey("lessons.id", ondelete="SET NULL"),
+        index=True,
+    )
+    parent_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True, native_uuid=False), ForeignKey("course_comments.id"), index=True
+    )
     body: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending", index=True)
 

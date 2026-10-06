@@ -5,7 +5,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from flask import current_app
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from marshmallow import Schema, fields, validate
 
 from app.routes.authz import roles_required
@@ -20,10 +20,14 @@ class ProgressSchema(Schema):
 
 class CommentSchema(Schema):
     body = fields.String(required=True, validate=validate.Length(min=2, max=4000))
+    lesson_id = fields.UUID(load_default=None, allow_none=True)
 
 
 class ModerationSchema(Schema):
-    decision = fields.String(required=True, validate=validate.OneOf(["approved", "rejected"]))
+    decision = fields.String(
+        required=True,
+        validate=validate.OneOf(["approved", "rejected", "hidden", "needs_reply"]),
+    )
     reason = fields.String(load_default=None, allow_none=True, validate=validate.Length(max=500))
 
 
@@ -31,8 +35,30 @@ class PathwayQuerySchema(Schema):
     locale = fields.String(load_default="en", validate=validate.OneOf(["en", "fa"]))
 
 
+class AdminCommentQuerySchema(Schema):
+    page = fields.Integer(load_default=1, validate=validate.Range(min=1))
+    page_size = fields.Integer(load_default=20, validate=validate.Range(min=1, max=100))
+    course = fields.String(load_default=None, allow_none=True, validate=validate.Length(max=160))
+    status = fields.String(
+        load_default="attention",
+        validate=validate.OneOf(
+            ["attention", "pending", "approved", "rejected", "needs_reply", "hidden", "all"]
+        ),
+    )
+    date_from = fields.Date(load_default=None, allow_none=True)
+    date_to = fields.Date(load_default=None, allow_none=True)
+
+
+class CommentReplySchema(Schema):
+    body = fields.String(required=True, validate=validate.Length(min=2, max=4000))
+
+
 def _service():  # type: ignore[no-untyped-def]
     return learning_service_from_container(current_app.extensions["container"])
+
+
+def _specialist_id() -> UUID | None:
+    return UUID(get_jwt_identity()) if get_jwt().get("role") == "specialist" else None
 
 
 @api_v1.post("/courses/<string:slug>/enroll")
@@ -71,21 +97,62 @@ def list_comments(slug: str):  # type: ignore[no-untyped-def]
 @jwt_required()
 @api_v1.arguments(CommentSchema)
 def add_comment(data: dict, slug: str):  # type: ignore[no-untyped-def]
-    return {"data": _service().add_comment(UUID(get_jwt_identity()), slug, data["body"])}, 201
+    return {
+        "data": _service().add_comment(
+            UUID(get_jwt_identity()), slug, data["body"], data["lesson_id"]
+        )
+    }, 201
 
 
 @api_v1.post("/admin/comments/<uuid:comment_id>/moderate")
-@roles_required("admin", "specialist")
+@roles_required("specialist", "super_admin")
 @api_v1.arguments(ModerationSchema)
 def moderate_comment(data: dict, comment_id: UUID):  # type: ignore[no-untyped-def]
     return {
         "data": _service().moderate(
-            UUID(get_jwt_identity()), comment_id, data["decision"], data["reason"]
+            UUID(get_jwt_identity()), comment_id, data["decision"], data["reason"], _specialist_id()
         )
     }
 
 
 @api_v1.get("/admin/comments/pending")
-@roles_required("admin", "specialist")
+@roles_required("specialist", "super_admin")
 def pending_comments():  # type: ignore[no-untyped-def]
-    return {"data": _service().pending_comments()}
+    return {"data": _service().admin_comments(status="pending", specialist_id=_specialist_id())["data"]}
+
+
+@api_v1.get("/admin/comments/courses")
+@roles_required("specialist", "super_admin")
+def moderation_courses():
+    return {"data": _service().moderation_courses(_specialist_id())}
+
+
+@api_v1.get("/admin/comments")
+@roles_required("specialist", "super_admin")
+@api_v1.arguments(AdminCommentQuerySchema, location="query")
+def admin_comments(query: dict):  # type: ignore[no-untyped-def]
+    return _service().admin_comments(**query, specialist_id=_specialist_id())
+
+
+@api_v1.get("/admin/comments/summary")
+@roles_required("specialist", "super_admin")
+def comment_summary():  # type: ignore[no-untyped-def]
+    return {"data": _service().comment_summary(_specialist_id())}
+
+
+@api_v1.post("/admin/comments/<uuid:comment_id>/reply")
+@roles_required("specialist", "super_admin")
+@api_v1.arguments(CommentReplySchema)
+def reply_comment(data: dict, comment_id: UUID):  # type: ignore[no-untyped-def]
+    return {
+        "data": _service().reply_comment(
+            UUID(get_jwt_identity()), comment_id, data["body"], _specialist_id()
+        )
+    }, 201
+
+
+@api_v1.delete("/admin/comments/<uuid:comment_id>")
+@roles_required("specialist", "super_admin")
+def delete_comment(comment_id: UUID):  # type: ignore[no-untyped-def]
+    _service().delete_comment(comment_id, _specialist_id())
+    return "", 204

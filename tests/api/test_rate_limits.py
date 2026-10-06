@@ -13,6 +13,7 @@ from app.services.auth import auth_service_from_container
 
 def test_auth_rate_limit_returns_retry_after(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     monkeypatch.setenv("TEST_DATABASE_URL", "sqlite+pysqlite://")
+    monkeypatch.setenv("EMAIL_PROVIDER", "fake")
     monkeypatch.setenv("TEST_REDIS_NAMESPACE", f"neurotech:test:rate-limit:{uuid4()}")
     monkeypatch.setattr(
         "app.core.security._password_hasher",
@@ -137,6 +138,7 @@ def test_five_wrong_otp_attempts_lock_identity_for_fifteen_minutes(client, app) 
     wrong_code = "111111" if actual_code == "000000" else "000000"
     wrong = {
         "display_name": "Locked Mobile",
+        "email": "locked-mobile@example.com",
         "phone": phone,
         "challenge_id": challenge_id,
         "code": wrong_code,

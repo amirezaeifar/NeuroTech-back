@@ -8,6 +8,7 @@ from uuid import UUID
 from sqlalchemy import select
 
 from app.core.academy_models import Course, CoursePrice, CourseTranslation
+from app.core.auth_models import UserProfile
 from app.core.commerce_models import (
     Entitlement,
     Order,
@@ -58,6 +59,7 @@ class CommerceService:
             )
             if price is None:
                 raise ValidationError("The selected currency is not available.")
+            _require_user_profile(uow.session, user_id)
             title = uow.session.scalar(
                 select(CourseTranslation.title).where(
                     CourseTranslation.course_id == course.id,
@@ -105,8 +107,8 @@ class CommerceService:
             }
 
     def fake_payment(self, attempt_id: UUID, result: str) -> dict:
-        if result not in {"success", "cancel"}:
-            raise ValidationError("Fake payment result must be success or cancel.")
+        if result not in {"success", "cancel", "failure"}:
+            raise ValidationError("Fake payment result must be success, cancel or failure.")
         event_id = f"fake:{attempt_id}:{result}"
         with self.uow_factory() as uow:
             attempt = uow.session.scalar(
@@ -173,6 +175,9 @@ class CommerceService:
             elif result == "cancel" and order.status == "pending":
                 order.status = "cancelled"
                 attempt.status = "cancelled"
+            elif result == "failure" and order.status == "pending":
+                order.status = "failed"
+                attempt.status = "failed"
             uow.commit()
             item = uow.session.scalar(select(OrderItem).where(OrderItem.order_id == order.id))
             course = uow.session.get(Course, item.course_id) if item else None
@@ -202,3 +207,10 @@ def commerce_service_from_container(container) -> CommerceService:  # type: igno
         lambda: SqlAlchemyUnitOfWork(container.database.session_factory),
         container.payment_gateway,
     )
+
+
+def _require_user_profile(session, user_id: UUID) -> UserProfile:  # type: ignore[no-untyped-def]
+    profile = session.scalar(select(UserProfile).where(UserProfile.user_id == user_id))
+    if profile is None or not all((profile.full_name, profile.email, profile.phone)):
+        raise ValidationError("Complete your basic information before placing an order.")
+    return profile

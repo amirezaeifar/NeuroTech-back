@@ -20,7 +20,9 @@ class OrderCreateSchema(Schema):
 
 
 class FakeCallbackSchema(Schema):
-    result = fields.String(required=True, validate=validate.OneOf(["success", "cancel"]))
+    result = fields.String(
+        required=True, validate=validate.OneOf(["success", "cancel", "failure"])
+    )
 
 
 def _service():  # type: ignore[no-untyped-def]
@@ -51,7 +53,11 @@ def fake_gateway(attempt_id: UUID):  # type: ignore[no-untyped-def]
     result = request.args.get("result")
     if result:
         payment = _service().fake_payment(attempt_id, result)
-        suffix = "paid=1" if payment["status"] == "paid" else "payment=cancelled"
+        suffix = (
+            "paid=1"
+            if payment["status"] == "paid"
+            else f"payment={payment['status']}"
+        )
         return redirect(
             f"{current_app.config['FRONTEND_URL']}/#/academy/course/"
             f"{payment['course_slug']}?{suffix}"
@@ -62,7 +68,8 @@ def fake_gateway(attempt_id: UUID):  # type: ignore[no-untyped-def]
         "<main style='font-family:sans-serif;max-width:32rem;margin:4rem auto'>"
         "<h1>NeuroTech Fake Gateway</h1><p>Development only.</p>"
         f"<a href='{action}?result=success'>Approve payment</a> &nbsp; "
-        f"<a href='{action}?result=cancel'>Cancel payment</a></main>",
+        f"<a href='{action}?result=cancel'>Cancel payment</a> &nbsp; "
+        f"<a href='{action}?result=failure'>Fail payment</a></main>",
         mimetype="text/html",
     )
 

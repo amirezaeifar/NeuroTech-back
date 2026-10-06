@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import selectinload
 
 from app.core.academy_models import (
@@ -20,7 +20,8 @@ from app.core.academy_models import (
     LessonTranslation,
     SectionTranslation,
 )
-from app.core.learning_models import Enrollment
+from app.core.content_models import PartnerProfile
+from app.core.learning_models import CourseComment, Enrollment
 from app.core.unit_of_work import SqlAlchemyUnitOfWork
 from app.domain.academy import (
     SLUG_PATTERN,
@@ -40,6 +41,7 @@ from app.domain.academy import (
 from app.domain.academy import (
     validate_translated_titles as _validate_translated_titles,
 )
+from app.domain.catalog import validate_youtube_playlist_id
 from app.domain.errors import ConflictError, ValidationError
 
 
@@ -71,7 +73,13 @@ class AcademyService:
             courses = list(
                 uow.session.scalars(
                     select(Course)
-                    .options(selectinload(Course.translations), selectinload(Course.prices))
+                    .options(
+                        selectinload(Course.translations),
+                        selectinload(Course.prices),
+                        selectinload(Course.media),
+                        selectinload(Course.sections).selectinload(CourseSection.lessons),
+                        selectinload(Course.instructor_partner),
+                    )
                     .where(*conditions)
                     .order_by(Course.position, Course.created_at, Course.id)
                     .offset((page - 1) * page_size)
@@ -80,8 +88,11 @@ class AcademyService:
             )
             return [_course_summary(course, locale) for course in courses], total
 
-    def list_admin_courses(self) -> list[dict]:
+    def list_admin_courses(self, owner_user_id: UUID | None = None) -> list[dict]:
         with self.uow_factory() as uow:
+            conditions = [Course.archived_at.is_(None)]
+            if owner_user_id is not None:
+                conditions.append(Course.owner_user_id == owner_user_id)
             courses = list(
                 uow.session.scalars(
                     select(Course)
@@ -91,12 +102,13 @@ class AcademyService:
                         selectinload(Course.outcomes),
                         selectinload(Course.media),
                         selectinload(Course.resources),
+                        selectinload(Course.instructor_partner),
                         selectinload(Course.sections).selectinload(CourseSection.translations),
                         selectinload(Course.sections)
                         .selectinload(CourseSection.lessons)
                         .selectinload(Lesson.translations),
                     )
-                    .where(Course.archived_at.is_(None))
+                    .where(*conditions)
                     .order_by(Course.position, Course.created_at, Course.id)
                 ).unique()
             )
@@ -113,6 +125,8 @@ class AcademyService:
                     selectinload(Course.translations),
                     selectinload(Course.prices),
                     selectinload(Course.outcomes),
+                    selectinload(Course.resources),
+                    selectinload(Course.instructor_partner),
                     selectinload(Course.sections).selectinload(CourseSection.translations),
                     selectinload(Course.sections)
                     .selectinload(CourseSection.lessons)
@@ -123,9 +137,13 @@ class AcademyService:
             if not include_unpublished:
                 query = query.where(Course.published_at.is_not(None))
             course = uow.session.scalar(query)
-            return _course_detail(course, locale) if course else None
+            return (
+                _course_detail(course, locale, expose_resources=course.tier != "premium")
+                if course
+                else None
+            )
 
-    def create_course(self, data: dict) -> dict:
+    def create_course(self, data: dict, owner_user_id: UUID | None = None) -> dict:
         slug = data["slug"].strip().lower()
         if not SLUG_PATTERN.fullmatch(slug):
             raise ValidationError("Slug must contain lowercase letters, numbers and hyphens.")
@@ -135,12 +153,33 @@ class AcademyService:
         with self.uow_factory() as uow:
             if uow.session.scalar(select(Course.id).where(Course.slug == slug)):
                 raise ConflictError("A course with this slug already exists.")
-            course = Course(slug=slug, tier=tier, field=data["field"], level=data["level"])
+            _validate_instructor_partner(uow.session, data.get("instructor_partner_id"))
+            course = Course(
+                slug=slug,
+                tier=tier,
+                field=data["field"],
+                level=data["level"],
+                owner_user_id=owner_user_id,
+                instructor_partner_id=data.get("instructor_partner_id"),
+                youtube_playlist_id=validate_youtube_playlist_id(data.get("youtube_playlist_id")),
+            )
             _replace_translations(course, data["translations"])
             _replace_prices(course, data.get("prices", []))
             uow.session.add(course)
             uow.commit()
             return _course_detail(course, "en")
+
+    def assert_owned_by(self, course_id: UUID, owner_user_id: UUID) -> None:
+        with self.uow_factory() as uow:
+            exists = uow.session.scalar(
+                select(Course.id).where(
+                    Course.id == course_id,
+                    Course.owner_user_id == owner_user_id,
+                    Course.archived_at.is_(None),
+                )
+            )
+            if exists is None:
+                raise ValidationError("You can only manage courses that you created.")
 
     def update_course(self, course_id: UUID, data: dict) -> dict:
         if "tier" in data and data["tier"] not in TIERS:
@@ -152,6 +191,13 @@ class AcademyService:
             for key in ("tier", "field", "level"):
                 if key in data:
                     setattr(course, key, data[key])
+            if "youtube_playlist_id" in data:
+                course.youtube_playlist_id = validate_youtube_playlist_id(
+                    data["youtube_playlist_id"]
+                )
+            if "instructor_partner_id" in data:
+                _validate_instructor_partner(uow.session, data.get("instructor_partner_id"))
+                course.instructor_partner_id = data.get("instructor_partner_id")
             if "translations" in data:
                 _replace_translations(course, data["translations"], uow.session)
             if "prices" in data:
@@ -236,6 +282,13 @@ class AcademyService:
             _validate_positions(data.get("outcomes", []), "outcome", per_locale=True)
             _validate_positions(data.get("media", []), "media")
 
+            lesson_ids = [lesson.id for section in course.sections for lesson in section.lessons]
+            if lesson_ids:
+                uow.session.execute(
+                    update(CourseComment)
+                    .where(CourseComment.lesson_id.in_(lesson_ids))
+                    .values(lesson_id=None)
+                )
             course.sections.clear()
             course.outcomes.clear()
             course.resources.clear()
@@ -292,10 +345,24 @@ def _course_summary(course: Course, locale: str) -> dict:
         "field": course.field,
         "level": course.level,
         "position": course.position,
+        "youtube_playlist_id": course.youtube_playlist_id,
         "title": translation.title,
         "description": translation.description,
+        "summary": translation.summary,
+        "images": [
+            {"kind": m.kind, "url": m.external_url or m.storage_path}
+            for m in course.media
+            if m.kind.startswith(("cover", "header"))
+        ],
         "instructor_name": translation.instructor_name,
         "duration_label": translation.duration_label,
+        "instructor_partner_id": (
+            str(course.instructor_partner_id) if course.instructor_partner_id else None
+        ),
+        "instructor_partner_slug": (
+            course.instructor_partner.slug if course.instructor_partner else None
+        ),
+        "lesson_count": sum(len(section.lessons) for section in course.sections),
         "prices": [
             {"currency": price.currency, "amount_minor": price.amount_minor}
             for price in sorted(course.prices, key=lambda item: item.currency)
@@ -303,7 +370,7 @@ def _course_summary(course: Course, locale: str) -> dict:
     }
 
 
-def _course_detail(course: Course, locale: str) -> dict:
+def _course_detail(course: Course, locale: str, *, expose_resources: bool = True) -> dict:
     data = _course_summary(course, locale)
     data.update(
         {
@@ -331,6 +398,15 @@ def _course_detail(course: Course, locale: str) -> dict:
                 }
                 for section in sorted(course.sections, key=lambda item: item.position)
             ],
+            "resources": [
+                {
+                    "name": item.name,
+                    "kind": item.kind,
+                    "url": (item.external_url or item.storage_path) if expose_resources else None,
+                    "locked": not expose_resources,
+                }
+                for item in course.resources
+            ],
             "version": course.version,
         }
     )
@@ -340,11 +416,13 @@ def _course_detail(course: Course, locale: str) -> dict:
 def _course_admin_payload(course: Course) -> dict:
     data = _course_summary(course, "en")
     data["published"] = course.published_at is not None
+    data["owner_user_id"] = str(course.owner_user_id) if course.owner_user_id else None
     data["translations"] = [
         {
             "locale": item.locale,
             "title": item.title,
             "description": item.description,
+            "summary": item.summary,
             "instructor_name": item.instructor_name,
             "duration_label": item.duration_label,
         }
@@ -431,6 +509,14 @@ def _localized_title(translations: list, locale: str) -> str:  # type: ignore[ty
     selected = next((item for item in translations if item.locale == locale), None)
     fallback = next((item for item in translations if item.locale == "en"), None)
     return (selected or fallback or translations[0]).title if translations else ""
+
+
+def _validate_instructor_partner(session, partner_id: UUID | None) -> None:  # type: ignore[no-untyped-def]
+    if partner_id is None:
+        return
+    partner = session.get(PartnerProfile, partner_id)
+    if partner is None or partner.archived_at is not None:
+        raise ValidationError("Selected instructor does not exist.")
 
 
 def academy_service_from_container(container) -> AcademyService:  # type: ignore[no-untyped-def]

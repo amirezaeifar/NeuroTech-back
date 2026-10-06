@@ -1,0 +1,314 @@
+[
+  {
+    "slug": "partner-1",
+    "position": 0,
+    "translations": [
+      {
+        "name": "Dr. Raee",
+        "title": "Chief Executive Officer",
+        "qualification": "Doctorate in Neurology",
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "bio": "A neurologist specializing in clinical research, responsible medical-device adoption, and applied neurotechnology programs in Mashhad.",
+        "locale": "en",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "Clinical Research",
+            "Medical Device Consulting",
+            "Neurotechnology"
+          ],
+          "experience": [
+            {
+              "role": "Chief Executive Officer",
+              "org": "Neuro Tech · Mashhad",
+              "period": "Present"
+            },
+            {
+              "role": "Clinical Researcher",
+              "org": "Mashhad Neurology Research Center",
+              "period": "2019–Present"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Neurology Specialty",
+              "school": "Mashhad University of Medical Sciences"
+            },
+            {
+              "degree": "Doctor of Medicine",
+              "school": "Mashhad University of Medical Sciences"
+            }
+          ]
+        }
+      },
+      {
+        "name": "دکتر راعی",
+        "title": "مدیر عامل",
+        "qualification": "دکترای نورولوژی",
+        "location": "مشهد، ایران",
+        "affiliation": "نوروتک · مشهد",
+        "bio": " پزشک متخصص مغز و اعصاب با تمرکز بر پژوهش بالینی، به‌کارگیری مسئولانه تجهیزات پزشکی و برنامه‌های کاربردی فناوری عصبی در مشهد.",
+        "locale": "fa",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "پژوهش بالینی",
+            "مشاوره تجهیزات پزشکی",
+            "فناوری عصبی"
+          ],
+          "experience": [
+            {
+              "role": "مدیر عامل",
+              "org": "نوروتک · مشهد",
+              "period": "تاکنون"
+            },
+            {
+              "role": "پژوهشگر بالینی",
+              "org": "مرکز پژوهش‌های نورولوژی مشهد",
+              "period": "۱۳۹۸–تاکنون"
+            }
+          ],
+          "education": [
+            {
+              "degree": "تخصص مغز و اعصاب",
+              "school": "دانشگاه علوم پزشکی مشهد"
+            },
+            {
+              "degree": "دکترای حرفه‌ای پزشکی",
+              "school": "دانشگاه علوم پزشکی مشهد"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "slug": "partner-2",
+    "position": 1,
+    "translations": [
+      {
+        "name": "Eng. Zirouhi",
+        "title": "Vice President",
+        "qualification": "Bachelor's Degree in Electronic Engineering",
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "bio": "An electronics engineer focused on medical-device integration, prototype evaluation, and technical coordination for neurotechnology projects.",
+        "locale": "en",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "Medical Device Engineering",
+            "R&D Engineering",
+            "Technical Consulting"
+          ],
+          "experience": [
+            {
+              "role": "Vice President",
+              "org": "Neuro Tech · Mashhad",
+              "period": "Present"
+            },
+            {
+              "role": "R&D Engineer",
+              "org": "Mashhad Biomedical Innovation Center",
+              "period": "2020–Present"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Bachelor's Degree in Electronic Engineering",
+              "school": "Ferdowsi University of Mashhad"
+            }
+          ]
+        }
+      },
+      {
+        "name": "مهندس زیروحی",
+        "title": "نایب رییس",
+        "qualification": "مهندسی الکترونیک",
+        "location": "مشهد، ایران",
+        "affiliation": "نوروتک · مشهد",
+        "bio": " مهندس الکترونیک با تمرکز بر یکپارچه‌سازی تجهیزات پزشکی، ارزیابی نمونه‌های اولیه و هماهنگی فنی پروژه‌های فناوری عصبی.",
+        "locale": "fa",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "مهندسی تجهیزات پزشکی",
+            "مهندسی تحقیق و توسعه",
+            "مشاوره فنی"
+          ],
+          "experience": [
+            {
+              "role": "نایب رییس",
+              "org": "نوروتک · مشهد",
+              "period": "تاکنون"
+            },
+            {
+              "role": "مهندس تحقیق و توسعه",
+              "org": "مرکز نوآوری زیست‌پزشکی مشهد",
+              "period": "۱۳۹۹–تاکنون"
+            }
+          ],
+          "education": [
+            {
+              "degree": "کارشناسی مهندسی الکترونیک",
+              "school": "دانشگاه فردوسی مشهد"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "slug": "partner-3",
+    "position": 2,
+    "translations": [
+      {
+        "name": "Eng. Shafiei",
+        "title": "Technical Director",
+        "qualification": "Bachelor's Degree in Computer Engineering",
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "bio": "A computer engineer working on healthcare software, clinical-data workflows, and the technical integration of neurology systems.",
+        "locale": "en",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "Healthcare Software",
+            "AI Research",
+            "Systems Integration"
+          ],
+          "experience": [
+            {
+              "role": "Technical Director",
+              "org": "Neuro Tech · Mashhad",
+              "period": "Present"
+            },
+            {
+              "role": "Software Engineer",
+              "org": "Isfahan Healthcare Technology Lab",
+              "period": "2021–Present"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Bachelor's Degree in Computer Engineering",
+              "school": "Islamic Azad University, Mashhad Branch"
+            }
+          ]
+        }
+      },
+      {
+        "name": "مهندس شفیعی",
+        "title": "مدیر فنی",
+        "qualification": "مهندسی کامپیوتر",
+        "location": "مشهد، ایران",
+        "affiliation": "نوروتک · مشهد",
+        "bio": "مهندس کامپیوتر فعال در نرم‌افزار سلامت، گردش‌کار داده‌های بالینی و یکپارچه‌سازی فنی سامانه‌های نورولوژی.",
+        "locale": "fa",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "نرم‌افزار سلامت",
+            "پژوهش هوش مصنوعی",
+            "یکپارچه‌سازی سامانه‌ها"
+          ],
+          "experience": [
+            {
+              "role": "مدیر فنی",
+              "org": "نوروتک · مشهد",
+              "period": "تاکنون"
+            },
+            {
+              "role": "مهندس نرم‌افزار",
+              "org": "آزمایشگاه فناوری سلامت اصفهان",
+              "period": "۱۴۰۰–تاکنون"
+            }
+          ],
+          "education": [
+            {
+              "degree": "کارشناسی مهندسی کامپیوتر",
+              "school": "دانشگاه آزاد اسلامی مشهد"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "slug": "partner-4",
+    "position": 3,
+    "translations": [
+      {
+        "name": "Eng. Rezaeifar",
+        "title": "Commercial Director",
+        "qualification": "Bachelor's Degree in Computer Engineering",
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "bio": "A technology specialist focused on medical-device market research, product coordination, and practical commercial planning for healthcare teams.",
+        "locale": "en",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "Product Development",
+            "Healthcare Technology",
+            "Medical Device Consulting"
+          ],
+          "experience": [
+            {
+              "role": "Commercial Director",
+              "org": "Neuro Tech · Islamic Azad University, Mashhad Branch",
+              "period": "Present"
+            },
+            {
+              "role": "Healthcare Technology Specialist",
+              "org": "Biomedical Systems Center, Islamic Azad University, Mashhad Branch",
+              "period": "2020–Present"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Bachelor's Degree in Computer Engineering",
+              "school": "Islamic Azad University, Mashhad Branch"
+            }
+          ]
+        }
+      },
+      {
+        "name": "مهندس رضایی فر",
+        "title": "مدیر بازرگانی",
+        "qualification": "مهندسی کامپیوتر",
+        "location": "مشهد، ایران",
+        "affiliation": "نوروتک · مشهد",
+        "bio": "پروفایل نمونه: متخصص فناوری با تمرکز بر پژوهش بازار تجهیزات پزشکی، هماهنگی محصول و برنامه‌ریزی تجاری کاربردی برای تیم‌های سلامت.",
+        "locale": "fa",
+        "details": {
+          "demo": true,
+          "collaborations": [
+            "توسعه محصول",
+            "فناوری سلامت",
+            "مشاوره تجهیزات پزشکی"
+          ],
+          "experience": [
+            {
+              "role": "مدیر بازرگانی",
+              "org": "نوروتک · دانشگاه آزاد اسلامی مشهد",
+              "period": "تاکنون"
+            },
+            {
+              "role": "متخصص فناوری سلامت",
+              "org": "مرکز سامانه‌های زیست‌پزشکی دانشگاه آزاد اسلامی مشهد",
+              "period": "۱۳۹۹–تاکنون"
+            }
+          ],
+          "education": [
+            {
+              "degree": "کارشناسی مهندسی کامپیوتر",
+              "school": "دانشگاه آزاد اسلامی مشهد"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

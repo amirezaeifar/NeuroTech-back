@@ -68,8 +68,8 @@ def test_admin_bootstrap_and_invitation_invariants(app) -> None:  # type: ignore
     service.bootstrap_admin("Admin", "admin-edge@example.com", "secure-pass-123")
     with pytest.raises(ConflictError):
         service.bootstrap_admin("Admin 2", "admin2@example.com", "secure-pass-123")
-    with pytest.raises(ValidationError):
-        service.create_invitation("person@example.com", "user")
+    learner_invite = service.create_invitation("person@example.com", "user")
+    assert learner_invite.outcome == "invitation_sent"
     with pytest.raises(ConflictError):
         service.create_invitation("admin-edge@example.com", "specialist")
 

@@ -24,6 +24,8 @@ venv/
 
 # Local runtime data
 storage/uploads/*
+storage/*.mmdb
+storage/*.mmdb.tmp
 !storage/uploads/.gitkeep
 logs/
 

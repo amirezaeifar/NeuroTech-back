@@ -37,11 +37,27 @@ Then, from PowerShell in the backend repository:
 .venv\Scripts\python.exe -m flask --app app:create_app run
 ```
 
+For live event country analytics, set `GEOIP_DATABASE_PATH` to an installed
+GeoLite2 Country `.mmdb` file. The server resolves the country from the request
+IP and does not trust user supplied country headers. Behind a reverse proxy,
+set `TRUSTED_PROXY_IPS` to the comma separated IP addresses of your proxies
+so the server can use their `X-Forwarded-For` value. Without a database,
+attendance is still counted but country is shown as unknown. The live room
+accepts a configured HTTPS YouTube, Vimeo, Aparat, or direct video URL; the
+stream is visible only to confirmed attendees and event instructors.
+
 `bootstrap-admin` works only while no admin exists. Every later `specialist` or
 `admin` account must be created through an invitation from an authenticated admin.
 
-Run the frontend separately with `npm run dev`. Its default API URL is
+Run the frontend separately with `npm run dev` and open the exact URL printed by
+Vite, normally `http://127.0.0.1:5173`. Its default API URL is
 `http://127.0.0.1:5000/api/v1`; override it with `VITE_API_BASE_URL` when needed.
+Do not switch one side to `localhost`: browser cookies are host-scoped, so both
+frontend and backend must consistently use `127.0.0.1` during local development.
+
+After login, verify `GET /api/v1/me` returns 200 and that Admin requests no
+longer return 401. The access token is held in an HttpOnly cookie; this is why it
+does not appear in frontend JavaScript or local storage.
 
 ## Verification
 

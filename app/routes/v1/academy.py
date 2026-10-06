@@ -5,10 +5,12 @@ from __future__ import annotations
 from uuid import UUID
 
 from flask import current_app
+from flask_jwt_extended import get_jwt, get_jwt_identity
 from marshmallow import Schema, fields, validate
 
 from app.domain.errors import NotFoundError
 from app.routes.authz import roles_required
+from app.routes.change_control import stage_change
 from app.routes.v1 import api_v1
 from app.services.academy import academy_service_from_container
 
@@ -22,6 +24,7 @@ class CourseQuerySchema(Schema):
 
 
 class TranslationSchema(Schema):
+    summary = fields.String(load_default="", validate=validate.Length(max=2000))
     locale = fields.String(required=True, validate=validate.OneOf(["en", "fa"]))
     title = fields.String(required=True, validate=validate.Length(min=1, max=240))
     description = fields.String(required=True, validate=validate.Length(min=1, max=20_000))
@@ -39,18 +42,26 @@ class CourseMutationSchema(Schema):
     tier = fields.String(required=True, validate=validate.OneOf(["free", "premium"]))
     field = fields.String(required=True, validate=validate.Length(min=1, max=60))
     level = fields.String(required=True, validate=validate.Length(min=1, max=30))
+    instructor_partner_id = fields.UUID(load_default=None, allow_none=True)
+    youtube_playlist_id = fields.String(
+        load_default=None, allow_none=True, validate=validate.Length(min=10, max=100)
+    )
     translations = fields.List(
         fields.Nested(TranslationSchema), required=True, validate=validate.Length(min=1, max=2)
     )
     prices = fields.List(
         fields.Nested(PriceSchema), load_default=list, validate=validate.Length(max=2)
     )
+    content = fields.Dict(load_default=None, allow_none=True)
+    published = fields.Boolean(load_default=False)
 
 
 class CourseUpdateSchema(Schema):
     tier = fields.String(validate=validate.OneOf(["free", "premium"]))
     field = fields.String(validate=validate.Length(min=1, max=60))
     level = fields.String(validate=validate.Length(min=1, max=30))
+    instructor_partner_id = fields.UUID(allow_none=True)
+    youtube_playlist_id = fields.String(allow_none=True, validate=validate.Length(min=10, max=100))
     translations = fields.List(
         fields.Nested(TranslationSchema), validate=validate.Length(min=1, max=2)
     )
@@ -128,6 +139,18 @@ def _service():  # type: ignore[no-untyped-def]
     return academy_service_from_container(current_app.extensions["container"])
 
 
+COURSE_ROLES = ("specialist", "content_manager", "admin", "super_admin")
+
+
+def _actor_id() -> UUID:
+    return UUID(get_jwt_identity())
+
+
+def _assert_specialist_scope(course_id: UUID) -> None:
+    if get_jwt().get("role") == "specialist":
+        _service().assert_owned_by(course_id, _actor_id())
+
+
 @api_v1.get("/courses")
 @api_v1.arguments(CourseQuerySchema, location="query")
 def list_courses(query: dict):  # type: ignore[no-untyped-def]
@@ -148,54 +171,102 @@ def course_detail(query: dict, slug: str):  # type: ignore[no-untyped-def]
 
 
 @api_v1.get("/admin/courses")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 def list_admin_courses():  # type: ignore[no-untyped-def]
-    return {"data": _service().list_admin_courses()}
+    owner_id = _actor_id() if get_jwt().get("role") == "specialist" else None
+    return {"data": _service().list_admin_courses(owner_id)}
 
 
 @api_v1.put("/admin/courses/order")
-@roles_required("admin", "specialist")
+@roles_required("admin", "super_admin")
 @api_v1.arguments(CourseReorderSchema)
 def reorder_courses(data: dict):  # type: ignore[no-untyped-def]
+    staged = stage_change("course", "global-order", "reorder", data)
+    if staged:
+        return staged
     _service().reorder(data["course_ids"])
     return {"data": {"ordered": True}}
 
 
 @api_v1.put("/admin/courses/<uuid:course_id>/content")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 @api_v1.arguments(CourseContentSchema)
 def replace_course_content(data: dict, course_id: UUID):  # type: ignore[no-untyped-def]
+    _assert_specialist_scope(course_id)
+    staged = stage_change(
+        "course", str(course_id), "replace_content", data, resource_id=course_id
+    )
+    if staged:
+        return staged
     return {"data": _service().replace_content(course_id, data)}
 
 
 @api_v1.post("/admin/courses")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 @api_v1.arguments(CourseMutationSchema)
 def create_course(data: dict):  # type: ignore[no-untyped-def]
-    return {"data": _service().create_course(data)}, 201
+    actor_id = _actor_id()
+    content = data.pop("content", None)
+    publish_after_create = data.pop("published", False)
+    staged = stage_change(
+        "course",
+        f"new:{data['slug']}",
+        "create",
+        {
+            **data,
+            "_owner_id": str(actor_id),
+            "_content": content,
+            "_publish": publish_after_create,
+        },
+    )
+    if staged:
+        return staged
+    course = _service().create_course(data, owner_user_id=actor_id)
+    course_id = UUID(course["id"])
+    if content:
+        _service().replace_content(course_id, content)
+    if publish_after_create:
+        course = _service().publish(course_id)
+    return {"data": course}, 201
 
 
 @api_v1.patch("/admin/courses/<uuid:course_id>")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 @api_v1.arguments(CourseUpdateSchema)
 def update_course(data: dict, course_id: UUID):  # type: ignore[no-untyped-def]
+    _assert_specialist_scope(course_id)
+    staged = stage_change("course", str(course_id), "update", data, resource_id=course_id)
+    if staged:
+        return staged
     return {"data": _service().update_course(course_id, data)}
 
 
 @api_v1.post("/admin/courses/<uuid:course_id>/publish")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 def publish_course(course_id: UUID):  # type: ignore[no-untyped-def]
+    _assert_specialist_scope(course_id)
+    staged = stage_change("course", str(course_id), "publish", resource_id=course_id)
+    if staged:
+        return staged
     return {"data": _service().publish(course_id)}
 
 
 @api_v1.post("/admin/courses/<uuid:course_id>/unpublish")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 def unpublish_course(course_id: UUID):  # type: ignore[no-untyped-def]
+    _assert_specialist_scope(course_id)
+    staged = stage_change("course", str(course_id), "unpublish", resource_id=course_id)
+    if staged:
+        return staged
     return {"data": _service().unpublish(course_id)}
 
 
 @api_v1.delete("/admin/courses/<uuid:course_id>")
-@roles_required("admin", "specialist")
+@roles_required(*COURSE_ROLES)
 def archive_course(course_id: UUID):  # type: ignore[no-untyped-def]
+    _assert_specialist_scope(course_id)
+    staged = stage_change("course", str(course_id), "archive", resource_id=course_id)
+    if staged:
+        return staged
     _service().archive(course_id)
     return "", 204

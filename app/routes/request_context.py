@@ -15,4 +15,5 @@ def register_request_context(app: Flask) -> None:
     @app.after_request
     def attach_request_id(response):  # type: ignore[no-untyped-def]
         response.headers["X-Request-ID"] = g.request_id
+        response.headers["X-Content-Type-Options"] = "nosniff"
         return response

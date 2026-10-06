@@ -23,7 +23,7 @@ from app.core.extensions import limiter
 from app.core.otp import RedisOtpService
 from app.core.security import keyed_digest
 from app.domain.auth import normalize_email, normalize_phone
-from app.domain.errors import AuthenticationError
+from app.domain.errors import AuthenticationError, ValidationError
 from app.routes.authz import roles_required
 from app.routes.v1 import api_v1
 from app.services.auth import UserView, auth_service_from_container
@@ -48,6 +48,7 @@ class PhoneRequestSchema(Schema):
 
 class PhoneRegistrationVerifySchema(PhoneRequestSchema):
     display_name = fields.String(required=True, validate=validate.Length(min=2, max=120))
+    email = fields.Email(required=True)
     challenge_id = fields.UUID(required=True)
     code = fields.String(required=True, validate=validate.Regexp(r"^\d{6}$"))
 
@@ -70,7 +71,27 @@ class ProfileUpdateSchema(Schema):
 
 
 class InvitationCreateSchema(EmailSchema):
-    role = fields.String(required=True, validate=validate.OneOf(["specialist", "admin"]))
+    role = fields.String(
+        required=True,
+        validate=validate.OneOf(
+            ["user", "specialist", "content_manager", "admin", "super_admin"]
+        ),
+    )
+
+
+class RoleUpdateSchema(Schema):
+    role = fields.String(
+        required=True,
+        validate=validate.OneOf(
+            ["user", "specialist", "content_manager", "admin", "super_admin"]
+        ),
+    )
+
+
+class AdminUserUpdateSchema(Schema):
+    display_name = fields.String(validate=validate.Length(min=2, max=120))
+    status = fields.String(validate=validate.OneOf(["active", "suspended"]))
+    profile = fields.Dict(keys=fields.String(validate=validate.OneOf(["full_name", "email", "phone", "national_id", "address", "city", "postal_code"])), values=fields.String(allow_none=True, validate=validate.Length(max=1000)))
 
 
 class InvitationAcceptSchema(Schema):
@@ -96,6 +117,13 @@ def _otp_service() -> RedisOtpService:
         container.sms_sender,
         container.settings.jwt_secret_key,
     )
+
+
+def _normalize_phone(value: str) -> str:
+    try:
+        return normalize_phone(value)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
 
 
 def _user_payload(user: UserView) -> dict:
@@ -124,7 +152,7 @@ def _issue_session(user: UserView):  # type: ignore[no-untyped-def]
 
 
 def _verify_phone_challenge(data: dict, purpose: str) -> str:
-    phone = normalize_phone(data["phone"])
+    phone = _normalize_phone(data["phone"])
     identity_hash, actual_purpose = _otp_service().verify(
         challenge_id=str(data["challenge_id"]), code=data["code"]
     )
@@ -169,24 +197,45 @@ def accept_invitation(data: dict):  # type: ignore[no-untyped-def]
 
 
 @api_v1.post("/admin/invitations")
-@roles_required("admin")
+@roles_required("super_admin")
 @api_v1.arguments(InvitationCreateSchema)
 def create_invitation(data: dict):  # type: ignore[no-untyped-def]
-    _auth_service().create_invitation(data["email"], data["role"])
-    return {"data": {"accepted": True}}, 202
+    result = _auth_service().create_invitation(data["email"], data["role"])
+    payload = {"outcome": result.outcome}
+    if result.user is not None:
+        payload["user"] = _user_payload(result.user)
+    return {"data": payload}, 202 if result.outcome == "invitation_sent" else 200
 
 
 @api_v1.get("/admin/users")
-@roles_required("admin")
+@roles_required("admin", "super_admin")
 def list_users():  # type: ignore[no-untyped-def]
     return {"data": _auth_service().list_users()}
+
+
+@api_v1.patch("/admin/users/<uuid:user_id>")
+@roles_required("admin", "super_admin")
+@api_v1.arguments(AdminUserUpdateSchema)
+def update_user_details(data: dict, user_id: UUID):  # type: ignore[no-untyped-def]
+    return {"data": _auth_service().update_user_details(user_id, data, get_jwt()["role"])}
+
+
+@api_v1.patch("/admin/users/<uuid:user_id>/role")
+@roles_required("super_admin")
+@api_v1.arguments(RoleUpdateSchema)
+def update_user_role(data: dict, user_id: UUID):  # type: ignore[no-untyped-def]
+    user = _auth_service().change_user_role(user_id, data["role"])
+    return {"data": {"user": _user_payload(user)}}
 
 
 @api_v1.post("/auth/login/password")
 @limiter.limit("10 per 15 minutes")
 @api_v1.arguments(PasswordLoginSchema)
 def login_password(data: dict):  # type: ignore[no-untyped-def]
-    normalized = normalize_email(data["email"])
+    try:
+        normalized = normalize_email(data["email"])
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
     otp = _otp_service()
     otp.assert_password_login_allowed(normalized)
     try:
@@ -202,7 +251,7 @@ def login_password(data: dict):  # type: ignore[no-untyped-def]
 @limiter.limit("10 per hour")
 @api_v1.arguments(PhoneRequestSchema)
 def request_registration_otp(data: dict):  # type: ignore[no-untyped-def]
-    phone = normalize_phone(data["phone"])
+    phone = _normalize_phone(data["phone"])
     if _auth_service().user_for_phone_login(phone) is not None:
         raise AuthenticationError("This phone cannot be used for registration.")
     challenge = _otp_service().request(
@@ -216,19 +265,25 @@ def request_registration_otp(data: dict):  # type: ignore[no-untyped-def]
 @api_v1.arguments(PhoneRegistrationVerifySchema)
 def verify_registration_otp(data: dict):  # type: ignore[no-untyped-def]
     phone = _verify_phone_challenge(data, "register")
-    user = _auth_service().register_phone(display_name=data["display_name"], phone=phone)
-    return _issue_session(user)
+    user = _auth_service().register_phone(display_name=data["display_name"], phone=phone,
+        email=data["email"])
+    return {"data": {"user": _user_payload(user), "verification_required": True}}, 201
 
 
 @api_v1.post("/auth/login/otp/request")
 @limiter.limit("10 per hour")
 @api_v1.arguments(PhoneRequestSchema)
 def request_login_otp(data: dict):  # type: ignore[no-untyped-def]
-    phone = normalize_phone(data["phone"])
+    phone = _normalize_phone(data["phone"])
     user = _auth_service().user_for_phone_login(phone)
     if user is None:
         # Preserve a uniform public response without spending an SMS for an
         # unknown account. Verification of this opaque id will simply fail.
+        if current_app.debug:
+            current_app.logger.info(
+                "Development login OTP skipped: no registered user for phone ending %s",
+                phone[-4:],
+            )
         return {"data": {"challenge_id": str(uuid4()), "expires_in": 300, "resend_after": 60}}, 202
     challenge = _otp_service().request(
         phone=phone, purpose="login", ip_address=request.remote_addr or "unknown"

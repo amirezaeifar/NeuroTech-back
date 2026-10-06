@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 
 
@@ -11,7 +12,7 @@ def _register_and_verify(client, app, email="member@example.com"):
     assert response.status_code == 201
     sent = app.extensions["container"].email_sender.sent_messages[-1]
     assert sent.body.startswith("Verification link: http://127.0.0.1:5173/#/login?")
-    token = sent.body.split("verify_email=", 1)[1]
+    token = sent.body.split("verify_email=", 1)[1].splitlines()[0]
     response = client.post("/api/v1/auth/email/verify", json={"token": token})
     assert response.status_code == 200
     assert response.get_json()["data"]["user"]["email_verified"] is True
@@ -34,6 +35,42 @@ def test_password_registration_verification_login_and_me(client, app) -> None:  
     me = client.get("/api/v1/me")
     assert me.status_code == 200
     assert me.get_json()["data"]["user"]["email"] == "member@example.com"
+
+
+def test_reserved_email_login_returns_validation_error(client) -> None:  # type: ignore[no-untyped-def]
+    response = client.post(
+        "/api/v1/auth/login/password",
+        json={"email": "member@example.invalid", "password": "secure-pass-123"},
+    )
+    assert response.status_code == 422
+    assert response.get_json()["code"] == "VALIDATION_ERROR"
+
+
+def test_invalid_phone_otp_requests_return_validation_error(client) -> None:  # type: ignore[no-untyped-def]
+    for endpoint in (
+        "/api/v1/auth/register/phone/request-otp",
+        "/api/v1/auth/login/otp/request",
+    ):
+        response = client.post(endpoint, json={"phone": "not-a-phone"})
+
+        assert response.status_code == 422
+        assert response.get_json()["code"] == "VALIDATION_ERROR"
+
+
+def test_unknown_login_phone_is_logged_only_as_skipped_in_debug(
+    client, app, caplog
+) -> None:  # type: ignore[no-untyped-def]
+    app.debug = True
+
+    with caplog.at_level(logging.INFO):
+        response = client.post(
+            "/api/v1/auth/login/otp/request", json={"phone": "+989120009876"}
+        )
+
+    assert response.status_code == 202
+    assert "Development login OTP skipped" in caplog.text
+    assert "ending 9876" in caplog.text
+    assert "verification code" not in caplog.text
 
 
 def test_unverified_email_cannot_log_in(client, app) -> None:  # type: ignore[no-untyped-def]
@@ -73,14 +110,18 @@ def test_phone_otp_is_hashed_and_creates_session(client, app) -> None:  # type: 
         "/api/v1/auth/register/phone/verify-otp",
         json={
             "display_name": "Mobile Member",
+            "email": "mobile-member@example.com",
             "phone": phone,
             "challenge_id": challenge_id,
             "code": code,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert response.get_json()["data"]["user"]["phone"] == phone
-    assert client.get("/api/v1/me").status_code == 200
+    assert response.get_json()["data"]["user"]["status"] == "pending"
+    assert client.get("/api/v1/me").status_code == 401
+    token = container.email_sender.sent_messages[-1].body.split("verify_email=", 1)[1].splitlines()[0]
+    assert client.post("/api/v1/auth/email/verify", json={"token": token}).status_code == 200
 
 
 def test_refresh_requires_csrf_and_rotates_cookie(client, app) -> None:  # type: ignore[no-untyped-def]

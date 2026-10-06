@@ -4,6 +4,7 @@ import os
 
 import pytest
 from argon2 import PasswordHasher
+from redis import RedisError
 
 from app import create_app
 from app.core.models import Base
@@ -17,6 +18,7 @@ def app(monkeypatch: pytest.MonkeyPatch, tmp_path):  # type: ignore[no-untyped-d
     )
     monkeypatch.setenv("SECRET_KEY", "test-secret-key")
     monkeypatch.setenv("SMS_PROVIDER", "fake")
+    monkeypatch.setenv("EMAIL_PROVIDER", "fake")
     monkeypatch.setenv("PAYMENT_PROVIDER", "fake")
     monkeypatch.setenv("UPLOAD_ROOT", str(tmp_path / "uploads"))
     database_url = os.getenv("INTEGRATION_DATABASE_URL") or ("sqlite+pysqlite://")
@@ -36,9 +38,12 @@ def app(monkeypatch: pytest.MonkeyPatch, tmp_path):  # type: ignore[no-untyped-d
     Base.metadata.drop_all(database.engine)
     database.dispose()
     redis_store = application.extensions["container"].redis
-    keys = list(redis_store.client.scan_iter(match=redis_store.key("*")))
-    if keys:
-        redis_store.client.delete(*keys)
+    try:
+        keys = list(redis_store.client.scan_iter(match=redis_store.key("*")))
+        if keys:
+            redis_store.client.delete(*keys)
+    except RedisError:
+        pass
     redis_store.close()
 
 

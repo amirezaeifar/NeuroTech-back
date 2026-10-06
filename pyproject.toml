@@ -18,11 +18,14 @@ dependencies = [
     "Flask-Limiter[redis]>=3.9",
     "flask-smorest>=0.46",
     "marshmallow>=3.23",
+    "maxminddb>=2.6",
+    "kavenegar>=1.1",
     "phonenumbers>=8.13",
     "PyMySQL>=1.1",
     "python-dotenv>=1.0",
     "redis>=5.2",
     "SQLAlchemy>=2.0",
+    "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]
@@ -54,3 +57,6 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.setuptools.package-data]
+app = ["data/*.json"]

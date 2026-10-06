@@ -13,6 +13,7 @@ def test_seed_is_idempotent_and_courses_are_localized(client, app) -> None:  # t
     payload = response.get_json()
     assert payload["meta"]["total"] == 3
     assert payload["data"][0]["title"] == "تصویربرداری عصبی: تفسیر MRI و CT"
+    assert payload["data"][0]["lesson_count"] == 2
     assert {price["currency"] for price in payload["data"][0]["prices"]} == {"IRR", "USD"}
 
 
@@ -23,6 +24,7 @@ def test_course_detail_uses_stable_slug(client, app) -> None:  # type: ignore[no
 
     assert response.status_code == 200
     assert response.get_json()["data"]["slug"] == "clinical-neurology"
+    assert "resources" in response.get_json()["data"]
 
 
 def test_course_admin_requires_authentication(client) -> None:  # type: ignore[no-untyped-def]

@@ -18,6 +18,9 @@ class User(UuidPrimaryKeyMixin, TimestampMixin, Base):
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default=Role.USER.value)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=UserStatus.ACTIVE.value)
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    avatar_file_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True, native_uuid=False))
 
     emails: Mapped[list[EmailIdentity]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
@@ -30,11 +33,31 @@ class User(UuidPrimaryKeyMixin, TimestampMixin, Base):
     )
 
 
+class UserProfile(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """Contact and delivery information owned by a user, independent of checkout."""
+
+    __tablename__ = "user_profiles"
+    __table_args__ = (UniqueConstraint("user_id"),)
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True, native_uuid=False), ForeignKey("users.id"), nullable=False, index=True
+    )
+    full_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    phone: Mapped[str] = mapped_column(String(24), nullable=False)
+    national_id: Mapped[str | None] = mapped_column(String(20))
+    address: Mapped[str | None] = mapped_column(String(1000))
+    city: Mapped[str | None] = mapped_column(String(120))
+    postal_code: Mapped[str | None] = mapped_column(String(20))
+
+
 class EmailIdentity(UuidPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "email_identities"
 
     user_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True, native_uuid=False), ForeignKey("users.id"), nullable=False
+        Uuid(as_uuid=True, native_uuid=False),
+        ForeignKey("users.id"),
+        nullable=False,
     )
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -69,7 +92,10 @@ class AuthSession(UuidPrimaryKeyMixin, Base):
     __tablename__ = "auth_sessions"
 
     user_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True, native_uuid=False), ForeignKey("users.id"), nullable=False
+        Uuid(as_uuid=True, native_uuid=False),
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
     )
     family_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True, native_uuid=False), nullable=False, default=uuid4
@@ -105,3 +131,12 @@ class AuditLog(UuidPrimaryKeyMixin, Base):
     target_id: Mapped[str | None] = mapped_column(String(64))
     details_json: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Favorite(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "favorites"
+    __table_args__ = (UniqueConstraint("user_id", "item_type", "item_id"),)
+
+    user_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True, native_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+    item_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    item_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True, native_uuid=False), nullable=False)
